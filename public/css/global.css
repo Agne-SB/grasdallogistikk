@@ -1,0 +1,320 @@
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap');
+
+
+    html {
+    font-size: 13px;
+    }
+
+    @media (min-width: 768px) {
+    html {
+        font-size: 14px;
+    }
+    }
+
+    h1 {
+    font-size: 1.8rem;
+    }
+
+    h2 {
+    font-size: 1.4rem;
+    }
+
+    h3 {
+    font-size: 1.2rem;
+    }
+
+
+    .btn {
+    font-size: 0.85rem;
+    padding: 4px 10px
+    }
+
+
+    body {
+    margin-bottom: 60px;
+    font-family: 'Montserrat', sans-serif;
+    background-color: #f2f2f2;
+    color: #202426;
+    max-width: 0 auto; 
+    margin: 50px 100px 100px 100px;
+    }
+
+
+    /* Table headers */
+    .table thead th {
+    background-color: #202426;
+    color: #ffffff;
+    font-weight: 600;
+    }
+
+    /* Table rows */
+    .table tbody tr:nth-child(even) {
+    background-color: #ffffff;
+    }
+
+    .table tbody tr:nth-child(odd) {
+    background-color: #f2f2f2;
+    }
+
+    .btn-primary {
+    background-color: #6c733d;
+    border-color: #6c733d;
+    color: white;
+    
+    }
+
+    .btn-primary:hover {
+    background-color: #55612f;
+    border-color: #55612f;
+    }
+
+    .btn-success {
+    background-color: #6c733d;
+    border-color: #6c733d;
+    color: white;
+    }
+
+    .btn-success:hover {
+    background-color: #55612f;
+    border-color: #55612f;
+    }
+
+    .btn-warning {
+    background-color: #ff5f00;
+    border-color: #ff5f00;
+    color: white;
+    }
+
+    .btn-warning:hover {
+    background-color: #cc4b00;
+    border-color: #cc4b00;
+    }
+
+    .btn-danger {
+    background-color: #8c8c88;
+    border-color: #8c8c88;
+    color: white;
+    }
+
+    .btn-danger:hover {
+    background-color: #6c6c68;
+    border-color: #6c6c68;
+    }
+
+    .badge.bg-success {
+    background-color: #6c733d;
+    }
+
+    .badge.bg-danger {
+    background-color: #ff5f00;
+    }
+
+
+.table { border-collapse: collapse; width: 100%; background: #fff; }
+.table th, .table td { border: 1px solid #d1d5db; padding: 8px; }
+
+.table tr:first-child th { background-color: #202426; color: #fff; font-weight: 600; }
+
+.pagination { display:flex; gap:6px; list-style:none; padding:0; }
+.page-link { padding:6px 10px; border:1px solid #d1d5db; border-radius:8px; text-decoration:none; color:#202426; }
+.page-item.active .page-link { background:#6c733d; color:#fff; border-color:#6c733d; }
+
+/* --- Navbar (global) --- */
+.site-nav {
+    position: sticky; top: 0; z-index: 50;
+    background: #f2f2f2;                  
+    border-bottom: 1px solid #e5e7eb;
+    padding: 2px 0;
+    }
+    .navbar-inner {
+    max-width: 0 auto; margin: 0 auto; padding: 12px 16px;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    }
+    .nav-left, .nav-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+    /* Brand */
+    .navbar-brand {
+    display: inline-flex; align-items: center; gap: 10px;
+    color: #6c733d; font-weight: 700; text-decoration: none;
+    }
+
+    .navbar-brand img {
+    height: clamp(36px, 5vw, 56px);
+    width: auto;                     
+    display: block;                  
+    }
+
+    /* Links */
+    .nav-link {
+    display: inline-block; padding: 6px 10px; border-radius: 8px;
+    color: #6c733d; font-weight: 500; text-decoration: none;
+    }
+    .nav-link:hover { background: #eef0e5; text-decoration: none; }
+    .nav-link.active { background: #6c733d; color: #fff; }
+
+    /* Small screens: stack neatly */
+    @media (max-width: 640px) {
+    .navbar-inner { flex-direction: column; align-items: stretch; }
+    .nav-right { justify-content: flex-start; }
+
+}
+
+/* ========== Forms (inputs, placeholders, date picker) ========== */
+    .form-input,
+    .form-textarea,
+    .form-date {
+    width: 100%;
+    border: 1px solid #d1d5db;
+    background: #fff;
+    color: #202426;
+    border-radius: 8px;
+    padding: 8px 10px;
+    transition: border-color .15s ease, box-shadow .15s ease;
+    }
+
+    .form-textarea { resize: vertical; min-height: 2.5rem; }
+
+    .form-input:focus,
+    .form-textarea:focus,
+    .form-date:focus {
+    outline: none;
+    border-color: #6c733d;                 /* brand green */
+    box-shadow: 0 0 0 3px rgba(108,115,61,.18);
+    }
+
+    /* Placeholder */
+    .form-input::placeholder,
+    .form-textarea::placeholder,
+    .form-date::placeholder,
+    input::placeholder,
+    textarea::placeholder {
+    color: #8c8c88;
+    opacity: 1; /* FF */
+    }
+
+    /* Date input calendar icon (WebKit) */
+    .form-date::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    margin-left: 6px;
+    width: 1.2rem; height: 1.2rem;
+    opacity: .75;
+    }
+    .form-date::-webkit-calendar-picker-indicator:hover { opacity: 1; }
+
+    /* Small quality-of-life spacing for button groups in table cells */
+    .btn + .btn { margin-left: 6px; }
+
+    :root { --app-radius: 8px; } 
+
+    .btn { border-radius: var(--app-radius); }
+
+    /* Optional: make table cells align nicely with form controls */
+    .table td, .table th { vertical-align: middle; }
+
+    /* Code to avoid Bootstraps */
+    .btn { box-shadow: none !important; border: 1px solid transparent; }
+    .btn:focus, .btn:active, .btn:focus-visible { box-shadow: none !important; outline: none !important; }
+
+    .btn-warning, .btn-success { border-color: transparent; }
+    
+    .action-stack { display: flex; flex-direction: column; gap: 6px; align-items: stretch; }
+    .btn-stack    { display: flex; flex-direction: column; gap: 6px; }
+    .btn-block { display: block; width: 100%; }
+    
+    .nav-link { border: 1px solid transparent; }
+    .nav-link:focus, .nav-link:active, .nav-link:focus-visible { outline: none; box-shadow: none; }
+
+    .nav-link:not(.active) { background: transparent; border-color: transparent; }
+    .nav-link:not(.active):hover { background: #eef0e5; }
+
+    /* keep form controls inside table cells */
+    *, *::before, *::after { box-sizing: border-box; }
+
+    .table td > textarea,
+    .table td > input[type="date"],
+    .table td > .form-textarea,
+    .table td > .form-date {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;       /* prevents odd overflows */
+    display: block;
+    }
+
+    /* match your style + tidy */
+    .form-textarea { border-radius: 8px; padding: 8px 10px; resize: vertical; }
+    .form-date     { border-radius: 8px; padding: 8px 10px; padding-right: 36px; }
+    .form-date { font-variant-numeric: tabular-nums; }
+    .form-date::-webkit-calendar-picker-indicator { cursor: pointer; opacity: .8; }
+    .form-date::-webkit-calendar-picker-indicator:hover { opacity: 1; }
+
+    /* “more text” hint for varenotat (shown via JS when overflow) */
+    .textarea-wrap { position: relative; }
+    .textarea-wrap .ta-more {
+    position: absolute; right: 8px; bottom: 6px;
+    font-size: 11px; color: #8c8c88; background: #fff;
+    padding: 0 4px; border-radius: 4px; display: none;
+    }
+    .textarea-wrap.has-overflow .ta-more { display: inline-block; }
+
+    /* Two-step row actions */
+    .row-actions .save-area { display: none; }
+    .row-actions .route-area { display: block; }
+
+    /* When row is dirty (unsaved edits), only show Save */
+    .row-actions.row-dirty .save-area { display: block; }
+    .row-actions.row-dirty .route-area { display: none; }
+
+    /* Small helper styles */
+    .muted { color:#8c8c88; font-size: .8rem; }
+
+    .saved-badge {
+    display:inline-block; margin-left:8px; padding:2px 8px;
+    font-size:.75rem; color:#fff; background:#292928; border-radius:999px;
+    }
+
+    .row-actions .route-area { text-align: center; }
+    .row-actions .route-area .saved-badge { display: inline-block; margin-top: 6px; }
+
+    /* compact search row */
+    .searchbar {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin: 10px 0;
+    }
+
+    /* match table text size + style */
+    .search-input {
+    font: inherit;                 
+    color: inherit;
+    padding: 8px 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: #fff;
+    width: min(520px, 100%);      
+    }
+
+    
+    .search-input::placeholder { color: #8c8c88; opacity: 1; }
+
+    /* Make search bar controls the same height */
+    :root { --control-h: 38px; }         
+
+    .search-input { height: var(--control-h); }
+
+    .searchbar .btn {
+    height: var(--control-h);
+    padding: 0 12px;                   
+    display: inline-flex;
+    align-items: center;              
+    font: inherit; 
+}
+
+    /* Remove underline from link-style buttons in all states */
+    .btn,
+    .btn:link,
+    .btn:visited,
+    .btn:hover,
+    .btn:focus {
+    text-decoration: none !important;
+    }
