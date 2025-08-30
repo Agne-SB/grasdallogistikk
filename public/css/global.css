@@ -31,13 +31,15 @@
 
 
     body {
-    margin-bottom: 60px;
     font-family: 'Montserrat', sans-serif;
     background-color: #f2f2f2;
     color: #202426;
-    max-width: 0 auto; 
-    margin: 50px 100px 100px 100px;
+
+    max-width: 1200px;         
+    margin: 50px auto 100px;   
+    padding: 0 16px;           
     }
+
 
 
     /* Table headers */
@@ -120,16 +122,21 @@
 .page-item.active .page-link { background:#6c733d; color:#fff; border-color:#6c733d; }
 
 /* --- Navbar (global) --- */
-.site-nav {
+    .site-nav {
     position: sticky; top: 0; z-index: 50;
     background: #f2f2f2;                  
     border-bottom: 1px solid #e5e7eb;
     padding: 2px 0;
     }
+
     .navbar-inner {
-    max-width: 0 auto; margin: 0 auto; padding: 12px 16px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 12px 16px;
     display: flex; align-items: center; justify-content: space-between; gap: 16px;
     }
+
+
     .nav-left, .nav-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 
     /* Brand */
@@ -318,3 +325,50 @@
     .btn:focus {
     text-decoration: none !important;
     }
+
+
+    /* --- Toasts --- */
+    .toast-stack{position:fixed;top:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:10px}
+    .toast{
+    min-width:260px;max-width:420px;background:#fff;color:#202426;
+    border:1px solid #d1d5db;border-radius:var(--app-radius,8px);
+    padding:10px 12px;box-shadow:0 10px 18px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.08);
+    animation:toast-in .18s ease-out
+    }
+    .toast.success{border-left:6px solid #6c733d}
+    .toast.error{border-left:6px solid #ff5f00}
+    .toast .close{background:none;border:0;cursor:pointer;font-size:18px;line-height:1;float:right;color:#8c8c88}
+    @keyframes toast-in{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes toast-out{to{opacity:0;transform:translateY(-6px)}}
+
+    /* Grey secondary button for neutral actions */
+    .btn-secondary {
+    background-color: #8c8c88;
+    border-color: #8c8c88;
+    color: #fff;
+    }
+    .btn-secondary:hover {
+    background-color: #6c6c68;
+    border-color: #6c6c68;
+    }
+
+    /* Late indicator (row + pill) */
+    .row-late { border-left: 4px solid #ff5f00; }
+    .late-badge {
+    display:inline-block; font-size:.75rem; line-height:1;
+    color:#fff; background:#ff5f00; border-radius:999px; padding:3px 8px;
+    }
+
+    /* Light grey state when pickup is agreed */
+    .btn-agreed {
+    background: #eef0e5;   
+    border-color: #d1d5db; 
+    color: #202426;     
+    }
+    .btn-agreed:hover {
+    background: #e6e9de;
+    border-color: #cdd5de;
+    }
+
+
+

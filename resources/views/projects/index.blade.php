@@ -15,7 +15,7 @@
             type="text"
             name="q"
             value="{{ request('q') }}"
-            placeholder="Søk: OrderKey, tittel, ansvarlig"
+            placeholder="Søk: Prosjekt nummer, tittel, ansvarlig..."
             class="search-input"
             autofocus>
         <button class="btn btn-primary">Søk</button>
@@ -151,7 +151,6 @@
     });
 </script>
 
-
-
+    @include('partials.toast')
 </body>
 </html>

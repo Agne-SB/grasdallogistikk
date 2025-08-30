@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Project;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Carbon;
+use App\Models\Deviation;
 
 class ProjectsController extends Controller
 {
@@ -30,13 +32,35 @@ class ProjectsController extends Controller
         return view('montering.index', compact('projects'));
     }
 
-    public function henting(Request $request)
+    public function henting(\Illuminate\Http\Request $request)
     {
-        $projects = $this->queryForBucket('henting', $request)
-            ->paginate(50)
+        // Base: bucket=henting, not handed out, and NO open avvik
+        $base = $this->queryForBucket('henting', $request)
+            ->whereNull('pickup_collected_at')
+            ->whereDoesntHave('deviations', function ($q) {
+                $q->where('status', 'open');
+            });
+
+        // A) Waiting for delivery
+        $waiting = (clone $base)
+            ->whereNull('delivered_at')
+            ->paginate(25, ['*'], 'waiting_page')
             ->withQueryString();
 
-        return view('henting.index', compact('projects'));
+        // B) Preparing (delivered but not ready)
+        $preparing = (clone $base)
+            ->whereNotNull('delivered_at')
+            ->whereNull('ready_at')
+            ->paginate(25, ['*'], 'preparing_page')
+            ->withQueryString();
+
+        // C) Ready & scheduling (ready_at set)
+        $ready = (clone $base)
+            ->whereNotNull('ready_at')
+            ->paginate(25, ['*'], 'ready_page')
+            ->withQueryString();
+
+        return view('henting.index', compact('waiting','preparing','ready'));
     }
 
     // Move a project between pages (Prosjekter/Montering/Henting)
@@ -46,11 +70,15 @@ class ProjectsController extends Controller
             'bucket' => ['required', \Illuminate\Validation\Rule::in(['prosjekter','montering','henting'])],
         ]);
 
-        // (Optional) block moving closed vendor items
-        // if ($project->vendor_closed_at) return back()->with('status', 'Kan ikke flytte en lukket ordre.');
+        if (in_array($data['bucket'], ['montering','henting'], true)) {
+            if (!filled($project->goods_note) || is_null($project->delivery_date)) {
+                return back()
+                    ->withErrors(['bucket' => 'Fyll inn varenotat og leveringsdato før du flytter.'])
+                    ->with('status', 'Kan ikke flytte – mangler varenotat/leveringsdato.');
+            }
+        }
 
         $project->update(['bucket' => $data['bucket']]);
-
         return back()->with('status', 'Flyttet til '.$data['bucket']);
     }
 
@@ -95,6 +123,8 @@ class ProjectsController extends Controller
         $data = $request->validate([
             'goods_note'    => ['nullable','string'],
             'delivery_date' => ['nullable','date'],
+            'supplier_eta'    => ['nullable','date'],
+            'staged_location' => ['nullable','string'],
         ]);
 
         $project->fill($data)->save();
@@ -102,6 +132,60 @@ class ProjectsController extends Controller
         return back()
             ->with('status', 'Lagret.')
             ->with('saved_project_id', $project->id);
+    }
+
+    // A) Waiting -> mark delivered
+    public function markDelivered(\App\Models\Project $project)
+    {
+        $project->update(['delivered_at' => now()]);
+        return back()->with('status', 'Registrert som levert.');
+    }
+
+    // B) Preparing -> mark ready (requires staged_location; and appointment if flagged)
+    public function markReady(\Illuminate\Http\Request $request, \App\Models\Project $project)
+    {
+        // require placement
+        $data = $request->validate([
+            'staged_location' => ['required','string','max:255'],
+        ]);
+
+        // optional rule: windows need appointment before ready
+        if ($project->requires_appointment && !$project->pickup_time_from) {
+            return back()->withErrors(['pickup_time_from' => 'Avtale om henting mangler.']);
+        }
+
+        $project->fill([
+            'staged_location' => $data['staged_location'],
+            'ready_at'        => now(),
+        ])->save();
+
+        return back()->with('status', 'Klargjort for henting.');
+    }
+
+
+    // C) Schedule pickup
+    public function schedulePickup(\Illuminate\Http\Request $request, \App\Models\Project $project)
+    {
+        $data = $request->validate([
+            'pickup_date'       => ['required','date'],
+            'appointment_notes' => ['nullable','string'],
+        ]);
+
+        $date = \Illuminate\Support\Carbon::parse($data['pickup_date'])->startOfDay();
+
+        $project->pickup_time_from = $date;  
+        $project->pickup_time_to   = null;   
+        $project->appointment_notes = $data['appointment_notes'] ?? null;
+        $project->save();
+
+        return back()->with('status', 'Henting avtalt.');
+    }
+
+    // D) Handed out to customer
+    public function markCollected(\App\Models\Project $project)
+    {
+        $project->update(['pickup_collected_at' => now()]);
+        return back()->with('status', 'Utlevert ✓');
     }
 
 }

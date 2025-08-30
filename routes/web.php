@@ -6,6 +6,7 @@ use App\Http\Controllers\ProjectsController;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Http\Request;
 use App\Services\MobileWorkerService;
+use App\Http\Controllers\DeviationController;
 
 /* --- App pages --- */
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -19,6 +20,7 @@ Route::get('/montering', [ProjectsController::class, 'montering'])
 Route::get('/henting', [ProjectsController::class, 'henting'])
 ->name('henting.index');
 
+
 /* Set status MP/HO and return to list */
 Route::post('/prosjekter/{project}/status', [ProjectsController::class, 'setStatus'])
     ->name('projects.status');
@@ -30,4 +32,24 @@ Route::patch('/prosjekter/{project}', [ProjectsController::class, 'update'])
 Route::patch('/projects/{project}/bucket', [ProjectsController::class, 'moveBucket'])
     ->name('projects.moveBucket');
 
+/* Henting actions */
+Route::patch('/projects/{project}/delivered',       [ProjectsController::class, 'markDelivered'])
+->name('projects.delivered');
+Route::patch('/projects/{project}/ready',           [ProjectsController::class, 'markReady'])
+->name('projects.ready');
+Route::patch('/projects/{project}/contacted',       [ProjectsController::class, 'markContacted'])
+->name('projects.contacted');
+Route::patch('/projects/{project}/schedule-pickup', [ProjectsController::class, 'schedulePickup'])
+->name('projects.schedulePickup');
+Route::patch('/projects/{project}/collected',       [ProjectsController::class, 'markCollected'])
+->name('projects.collected');
 
+/* Avvik */
+Route::patch('/projects/{project}/ready',     [ProjectsController::class, 'markReady'])
+->name('projects.ready');
+Route::post ('/avvik',                        [DeviationController::class,  'store'])
+->name('avvik.store');
+Route::get  ('/avvik',                        [DeviationController::class,  'index'])
+->name('avvik.index');
+Route::patch('/avvik/{deviation}/resolve', [DeviationController::class, 'resolve'])
+    ->name('avvik.resolve');
