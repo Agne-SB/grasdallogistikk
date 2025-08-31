@@ -40,8 +40,6 @@
     padding: 0 16px;           
     }
 
-
-
     /* Table headers */
     .table thead th {
     background-color: #202426;
@@ -359,7 +357,7 @@
     color:#fff; background:#ff5f00; border-radius:999px; padding:3px 8px;
     }
 
-    /* Light grey state when pickup is agreed */
+    /* Light grey state */
     .btn-agreed {
     background: #eef0e5;   
     border-color: #d1d5db; 
@@ -369,6 +367,32 @@
     background: #e6e9de;
     border-color: #cdd5de;
     }
+
+    /* In-progress (I oppdrag) visual freeze */
+    .row-inprogress { background: #363732; }
+    .row-inprogress td { opacity: 0.95; }
+
+
+    /* Bucket header colors (override any defaults) */
+    .table.table-bucket-green  thead th,
+    .table.table-bucket-green  tr:first-child th {
+    background-color: rgba(108,115,61,0.85) !important;
+    color: #fff !important;
+    }
+
+    .table.table-bucket-orange thead th,
+    .table.table-bucket-orange tr:first-child th {
+    background-color: rgba(255,95,0,0.85) !important;
+    color: #fff !important;
+    }
+
+    .table.table-bucket-gray   thead th,
+    .table.table-bucket-gray   tr:first-child th {
+    background-color: rgba(140,140,136,0.85) !important;
+    color: #fff !important;
+    }
+
+
 
 
 

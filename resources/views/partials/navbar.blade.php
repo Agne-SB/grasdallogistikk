@@ -11,6 +11,7 @@
         <a href="{{ url('/prosjekter') }}" class="nav-link {{ request()->is('prosjekter') ? 'active' : '' }}">Prosjekter</a>
         <a href="{{ url('/montering') }}"  class="nav-link {{ request()->is('montering')  ? 'active' : '' }}">Montering</a>
         <a href="{{ url('/henting') }}"    class="nav-link {{ request()->is('henting')    ? 'active' : '' }}">Henting</a>
+        <a href="{{ url('/planlegging') }}"    class="nav-link {{ request()->is('planlegging')    ? 'active' : '' }}">Planlegging</a>
         <a href="{{ url('/avvik') }}"    class="nav-link {{ request()->is('avvik')    ? 'active' : '' }}">Avvik</a>
         </nav>
     </div>

@@ -42,5 +42,10 @@ return [
         'ttl' => env('MW_TOKEN_CACHE_MINUTES', 55),
     ],
 
+    'map' => [
+    'origin_lat' => env('MAP_ORIGIN_LAT', 0),
+    'origin_lng' => env('MAP_ORIGIN_LNG', 0),
+    ],
+
 
 ];

@@ -20,6 +20,9 @@ Route::get('/montering', [ProjectsController::class, 'montering'])
 Route::get('/henting', [ProjectsController::class, 'henting'])
 ->name('henting.index');
 
+Route::get('/planlegging', [ProjectsController::class, 'planlegging'])
+->name('planlegging.index');
+
 
 /* Set status MP/HO and return to list */
 Route::post('/prosjekter/{project}/status', [ProjectsController::class, 'setStatus'])
@@ -44,7 +47,7 @@ Route::patch('/projects/{project}/schedule-pickup', [ProjectsController::class, 
 Route::patch('/projects/{project}/collected',       [ProjectsController::class, 'markCollected'])
 ->name('projects.collected');
 
-/* Avvik */
+/* Avvik actions*/
 Route::patch('/projects/{project}/ready',     [ProjectsController::class, 'markReady'])
 ->name('projects.ready');
 Route::post ('/avvik',                        [DeviationController::class,  'store'])
@@ -53,3 +56,9 @@ Route::get  ('/avvik',                        [DeviationController::class,  'ind
 ->name('avvik.index');
 Route::patch('/avvik/{deviation}/resolve', [DeviationController::class, 'resolve'])
     ->name('avvik.resolve');
+
+/* Montering actions */
+Route::patch('/projects/{project}/mount-start', [ProjectsController::class, 'markMountStart'])
+->name('projects.mountStart');
+Route::patch('/projects/{project}/mount-done',  [ProjectsController::class, 'markMountDone'])
+->name('projects.mountDone');

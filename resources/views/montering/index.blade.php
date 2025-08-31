@@ -4,44 +4,177 @@
     <meta charset="utf-8">
     <title>Montering</title>
     <link rel="stylesheet" href="{{ asset('css/global.css') }}?v={{ filemtime(public_path('css/global.css')) }}">
-</head>
-    
+    </head>
 <body>
     @include('partials.navbar')
 
-    <h1>Montering</h1>
+    <h1>Montering (MP)</h1>
 
-    @if($projects->isEmpty())
-        <p>Ingen prosjekter funnet.</p>
+    {{-- Search --}}
+    <form method="get" class="searchbar">
+        <input type="text" name="q" value="{{ request('q') }}" placeholder="Søk: OrderKey, tittel, ansvarlig, adresse" class="search-input">
+        <button class="btn btn-primary">Søk</button>
+        <a href="{{ url()->current() }}" class="btn btn-danger">Nullstill</a>
+    </form>
+
+    {{-- TABLE A: Venter på levering --}}
+    <h2>Venter på levering</h2>
+    @if($waiting->isEmpty())
+        <p>Ingen prosjekter venter på levering.</p>
     @else
         <table class="table">
         <thead>
             <tr>
-            <th>ID</th>
+            <th>OrderKey</th>
             <th>Tittel</th>
-            <th>Kunde</th>
-            <th>Adresse</th>
             <th>Varenotat</th>
-            <th>Leveringsdato</th>
+            <th>Forventet levering</th>
+            <th>Handling</th>
             </tr>
         </thead>
         <tbody>
-            @foreach ($projects as $p)
+            @foreach($waiting as $p)
             <tr>
-                <td>{{ $p->id }}</td>
+                <td>{{ $p->external_number ?? '–' }}</td>
                 <td>{{ $p->title }}</td>
-                <td>{{ $p->customer_name ?? '' }}</td>
-                <td>{{ $p->address }}</td>
-                <td>{{ $p->goods_note ?? '' }}</td>
-                <td>{{ optional($p->delivery_date)->format('Y-m-d') }}</td>
+                <td>{{ $p->goods_note ?: '–' }}</td>
+                <td>{{ $p->delivery_date?->format('Y-m-d') ?? '–' }}</td>
+                <td>
+                <form method="POST" action="{{ route('projects.delivered', $p) }}" style="display:inline-block;">
+                    @csrf @method('PATCH')
+                    <button class="btn btn-success">Levert</button>
+                </form>
+
+                <form method="POST" action="{{ route('avvik.store') }}" style="display:inline-block;margin-left:6px;">
+                    @csrf
+                    <input type="hidden" name="project_id" value="{{ $p->id }}">
+                    <input type="hidden" name="source" value="montering">
+                    <input type="hidden" name="type" value="mangler">
+                    <button class="btn btn-warning">Avvik</button>
+                </form>
+                </td>
             </tr>
             @endforeach
         </tbody>
         </table>
-
-        <div class="pager">
-        {{ $projects->withQueryString()->links('pagination::bootstrap-5') }}
-        </div>
+        {{ $waiting->links('pagination::bootstrap-5') }}
     @endif
+
+    {{-- TABLE B: Klargjøring --}}
+    <h2 style="margin-top:24px;">Klargjøring</h2>
+    @if($preparing->isEmpty())
+        <p>Ingen prosjekter i klargjøring.</p>
+    @else
+        <table class="table">
+        <thead>
+            <tr>
+            <th>OrderKey</th>
+            <th>Tittel</th>
+            <th>Mottatt</th>
+            <th>Plassering</th>
+            <th>Handling</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($preparing as $p)
+            <tr>
+                <td>{{ $p->external_number ?? '–' }}</td>
+                <td>{{ $p->title }}</td>
+                <td>{{ $p->delivered_at?->format('Y-m-d H:i') ?? '–' }}</td>
+                <td>
+                <form id="prep-{{ $p->id }}" method="POST" action="{{ route('projects.ready', $p) }}">
+                    @csrf @method('PATCH')
+                    <input type="text" name="staged_location" value="{{ old('staged_location', $p->staged_location) }}" class="form-input" placeholder="f.eks. Reol B3" required>
+                </td>
+                <td>
+                    <button class="btn btn-success">Klargjort</button>
+                </form>
+
+                <form method="POST" action="{{ route('avvik.store') }}" style="display:inline-block;margin-left:6px;">
+                    @csrf
+                    <input type="hidden" name="project_id" value="{{ $p->id }}">
+                    <input type="hidden" name="source" value="montering">
+                    <input type="hidden" name="type" value="skade">
+                    <button class="btn btn-warning">Avvik</button>
+                </form>
+                </td>
+            </tr>
+            @endforeach
+        </tbody>
+        </table>
+        {{ $preparing->links('pagination::bootstrap-5') }}
+    @endif
+
+    {{-- TABLE C: Klar for montering --}}
+    <h2 style="margin-top:24px;">Klar for montering</h2>
+    @if($ready->isEmpty())
+        <p>Ingen klare prosjekter.</p>
+    @else
+        <table class="table">
+        <thead>
+            <tr>
+            <th>OrderKey</th>
+            <th>Tittel</th>
+            <th>Plassering</th>
+            <th>Klar siden</th>
+            <th>Adresse</th>
+            <th>Handling</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($ready as $p)
+            @php $inProgress = (bool) $p->mount_started_at; @endphp
+            <tr class="{{ $inProgress ? 'row-inprogress' : '' }}">
+                <td>{{ $p->external_number ?? '–' }}</td>
+                <td>{{ $p->title }}</td>
+                <td>{{ $p->staged_location ?: '–' }}</td>
+                <td>{{ $p->ready_at?->format('Y-m-d') ?? '–' }}</td>
+                <td>{{ $p->address ?? '–' }}</td>
+                <td>
+                {{-- I oppdrag (freeze) --}}
+                <form method="POST" action="{{ route('projects.mountStart', $p) }}" style="display:inline-block;">
+                    @csrf @method('PATCH')
+                    <button class="btn {{ $inProgress ? 'btn-agreed' : 'btn-secondary' }}" {{ $inProgress ? 'disabled' : '' }}>
+                    {{ $inProgress ? 'I oppdrag ✓' : 'Til oppdrag' }}
+                    </button>
+                </form>
+
+                {{-- Avvik --}}
+                <form method="POST" action="{{ route('avvik.store') }}" style="display:inline-block;margin-left:6px;">
+                    @csrf
+                    <input type="hidden" name="project_id" value="{{ $p->id }}">
+                    <input type="hidden" name="source" value="montering">
+                    <input type="hidden" name="type" value="annet">
+                    <button class="btn btn-warning">Avvik</button>
+                </form>
+
+                {{-- Utført (remove from list) --}}
+                <form method="POST" action="{{ route('projects.mountDone', $p) }}" style="display:inline-block;margin-left:6px;">
+                    @csrf @method('PATCH')
+                    <button class="btn btn-success">Utført</button>
+                </form>
+                </td>
+            </tr>
+            @endforeach
+        </tbody>
+        </table>
+        {{ $ready->links('pagination::bootstrap-5') }}
+    @endif
+
+    @include('partials.toast')
+
+    {{-- Small script: disable "Klargjort" until placement is typed --}}
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('form[id^="prep-"]').forEach(function (f) {
+        const input = f.querySelector('input[name="staged_location"]');
+        const btn   = f.querySelector('button.btn.btn-success');
+        if (!input || !btn) return;
+        const toggle = () => btn.disabled = !input.value.trim();
+        input.addEventListener('input', toggle);
+        toggle();
+        });
+    });
+    </script>
 </body>
 </html>

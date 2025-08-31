@@ -113,6 +113,13 @@ class MobileWorkerService
             $project->save();
         }
 
+        $lat = Arr::get($o, 'geoLocation.lat') ?? Arr::get($o, 'geoLocation.latitude');
+        $lng = Arr::get($o, 'geoLocation.lng') ?? Arr::get($o, 'geoLocation.longitude');
+        if (!is_null($lat) && !is_null($lng)) {
+            $project->geo_lat = (float) $lat;
+            $project->geo_lng = (float) $lng;
+        }
+
         return ['success' => true, 'created' => $created, 'updated' => $updated, 'skipped' => $skipped];
     }
 
