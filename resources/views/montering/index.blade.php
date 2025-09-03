@@ -5,8 +5,9 @@
     <title>Montering</title>
     <link rel="stylesheet" href="{{ asset('css/global.css') }}?v={{ filemtime(public_path('css/global.css')) }}">
     </head>
-<body>
+<body data-page-source="montering">
     @include('partials.navbar')
+
 
     <h1>Montering (MP)</h1>
 
@@ -50,7 +51,17 @@
                     <input type="hidden" name="project_id" value="{{ $p->id }}">
                     <input type="hidden" name="source" value="montering">
                     <input type="hidden" name="type" value="mangler">
-                    <button class="btn btn-warning">Avvik</button>
+                    <button type="button" class="btn btn-warning js-open-avvik"
+                    data-project-id="{{ $p->id }}"
+                    data-source="montering"
+                    data-orderkey="{{ $p->external_number }}"
+                    data-title="{{ $p->title }}"
+                    data-customer="{{ $p->customer_name }}"
+                    data-address="{{ $p->address }}"
+                    data-supervisor="{{ $p->supervisor_name }}"
+                    data-assigned="{{ optional($p->updated_at)->format('Y-m-d') }}">
+                    Avvik
+                    </button>
                 </form>
                 </td>
             </tr>
@@ -95,7 +106,17 @@
                     <input type="hidden" name="project_id" value="{{ $p->id }}">
                     <input type="hidden" name="source" value="montering">
                     <input type="hidden" name="type" value="skade">
-                    <button class="btn btn-warning">Avvik</button>
+                    <button type="button" class="btn btn-warning js-open-avvik"
+                    data-project-id="{{ $p->id }}"
+                    data-source="montering"
+                    data-orderkey="{{ $p->external_number }}"
+                    data-title="{{ $p->title }}"
+                    data-customer="{{ $p->customer_name }}"
+                    data-address="{{ $p->address }}"
+                    data-supervisor="{{ $p->supervisor_name }}"
+                    data-assigned="{{ optional($p->updated_at)->format('Y-m-d') }}">
+                    Avvik
+                    </button>
                 </form>
                 </td>
             </tr>
@@ -145,7 +166,17 @@
                     <input type="hidden" name="project_id" value="{{ $p->id }}">
                     <input type="hidden" name="source" value="montering">
                     <input type="hidden" name="type" value="annet">
-                    <button class="btn btn-warning">Avvik</button>
+                    <button type="button" class="btn btn-warning js-open-avvik"
+                    data-project-id="{{ $p->id }}"
+                    data-source="montering"
+                    data-orderkey="{{ $p->external_number }}"
+                    data-title="{{ $p->title }}"
+                    data-customer="{{ $p->customer_name }}"
+                    data-address="{{ $p->address }}"
+                    data-supervisor="{{ $p->supervisor_name }}"
+                    data-assigned="{{ optional($p->updated_at)->format('Y-m-d') }}">
+                    Avvik
+                    </button>
                 </form>
 
                 {{-- Utført (remove from list) --}}
@@ -162,19 +193,8 @@
     @endif
 
     @include('partials.toast')
+    @include('partials.avvik-modal')
+    @include('partials.avvik-modal-js')
 
-    {{-- Small script: disable "Klargjort" until placement is typed --}}
-    <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        document.querySelectorAll('form[id^="prep-"]').forEach(function (f) {
-        const input = f.querySelector('input[name="staged_location"]');
-        const btn   = f.querySelector('button.btn.btn-success');
-        if (!input || !btn) return;
-        const toggle = () => btn.disabled = !input.value.trim();
-        input.addEventListener('input', toggle);
-        toggle();
-        });
-    });
-    </script>
 </body>
 </html>

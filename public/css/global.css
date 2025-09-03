@@ -392,6 +392,67 @@
     color: #fff !important;
     }
 
+    .table.table-bucket-dark   thead th,
+    .table.table-bucket-dark   tr:first-child th {
+    background-color: #202426 !important;
+    color: #fff !important;
+    }
+
+    /* --- Avvik modal: centered, compact, same typography --- */
+    .modal { position: fixed; inset: 0; display: none; z-index: 1000; }
+    .modal.is-open { display: block; }
+    .modal-open { overflow: hidden; } 
+
+    .modal__backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.35); }
+
+    .modal__card {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: min(92vw, 640px);              
+    max-height: 85vh; overflow: auto;     
+    background: #fff; border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.2);
+    padding: 16px;
+    }
+
+    .modal__title {
+    margin: 0 0 8px 0;
+    font-size: 1.4rem;                    
+    line-height: 1.3;
+    display: flex; flex-wrap: wrap; gap: .35em;
+    }
+
+    /* highlight the order key nicely and allow wrapping */
+    #avvik-orderkey {
+    font-weight: 600;
+    background: #eef0e5;
+    padding: 2px 6px;
+    border-radius: 6px;
+    }
+
+    .modal__meta {
+    font-size: 1rem;                      
+    color: #202426;
+    display: grid; gap: 4px;
+    margin-bottom: 10px;
+    overflow-wrap: anywhere;              
+    }
+
+    .modal__fields .form-input,
+    .modal__fields .form-textarea {
+    font: inherit;                        
+    }
+
+    .modal__actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; }
+
+    @media (max-width: 640px) {
+    .modal__card { width: 94vw; max-height: 90vh; }
+}
+
+
+
+
+
 
 
 

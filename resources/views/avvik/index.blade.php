@@ -10,6 +10,15 @@
 
     <h1>Avvik</h1>
 
+    {{-- Search  --}}
+    <form method="get" class="searchbar">
+        <input type="text" name="q" value="{{ request('q') }}"
+            placeholder="Søk: Prosjekt nummer, tittel, ansvarlig..."
+            class="search-input" autofocus>
+        <button class="btn btn-primary">Søk</button>
+        <a href="{{ url()->current() }}" class="btn btn-danger">Nullstill</a>
+    </form>
+
     @php use Illuminate\Support\Str; @endphp
 
     @if($open->isEmpty())
@@ -18,7 +27,7 @@
         <table class="table">
         <thead>
             <tr>
-            <th>OrderKey</th>
+            <th>Pr.nr</th>
             <th>Tittel</th>
             <th>Kilde</th>
             <th>Type</th>
@@ -39,7 +48,20 @@
                 <td>
                 <form method="POST" action="{{ route('avvik.resolve', $d) }}">
                     @csrf @method('PATCH')
-                    <button class="btn btn-success">Løst</button>
+                    <button type="button" class="btn btn-success btn-block js-open-resolve"
+                    data-deviation-id="{{ $d->id }}"
+                    data-orderkey="{{ $d->project?->external_number }}"
+                    data-title="{{ $d->project?->title }}"
+                    data-customer="{{ $d->project?->customer_name }}"
+                    data-address="{{ $d->project?->address }}"
+                    data-supervisor="{{ $d->project?->supervisor_name }}"
+                    data-source="{{ $d->source }}"
+                    data-goods-note="{{ $d->project?->goods_note }}"
+                    data-delivery-date="{{ optional($d->project?->delivery_date)->format('Y-m-d') }}"
+                    data-suggest-dest="{{ $d->source }}"> {{-- default to same side (HO/MO) --}}
+                    Løs
+                    </button>
+
                 </form>
                 </td>
             </tr>
@@ -50,23 +72,9 @@
         {{ $open->links('pagination::bootstrap-5') }}
     @endif
 
-    <hr>
-
-    <h2>Registrer nytt avvik</h2>
-    <form method="POST" action="{{ route('avvik.store') }}" class="searchbar" style="flex-wrap:wrap;">
-        @csrf
-        <input type="number" name="project_id" class="form-input" placeholder="Project ID" style="max-width:160px">
-        <select name="source" class="form-input" style="max-width:160px">
-        <option value="henting">Henting</option>
-        <option value="montering">Montering</option>
-        </select>
-        <input type="text" name="type" class="form-input" placeholder="Type (mangler/skade/…)" style="max-width:220px">
-        <input type="number" name="qty_expected" class="form-input" placeholder="Antall forventet" style="max-width:160px">
-        <input type="number" name="qty_received" class="form-input" placeholder="Antall mottatt" style="max-width:160px">
-        <input type="text" name="note" class="form-input" placeholder="Notat (valgfritt)" style="min-width:240px; flex:1">
-        <button class="btn btn-primary">Lagre avvik</button>
-    </form>
-
     @include('partials.toast')
+    @include('partials/avvik-resolve-modal')
+    @include('partials/avvik-resolve-js')
+
 </body>
 </html>

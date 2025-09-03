@@ -8,9 +8,10 @@
     <body>
     @include('partials.navbar')
 
+
     <h1>Henting (HO)</h1>
 
-    {{-- Search (same as Prosjekter) --}}
+    {{-- Search --}}
     <form method="get" class="searchbar">
         <input type="text" name="q" value="{{ request('q') }}"
             placeholder="Søk: Prosjekt nummer, tittel, ansvarlig, plassering..."
@@ -55,10 +56,20 @@
                     {{-- Avvik --}}
                     <form method="POST" action="{{ route('avvik.store') }}" style="display:inline-block;margin-left:6px;">
                     @csrf
-                    <input type="hidden" name="project_id" value="{{ $p->id }}">
-                    <input type="hidden" name="source" value="henting">
-                    <input type="hidden" name="type" value="mangler">
-                    <button class="btn btn-warning">Avvik</button>
+                        <input type="hidden" name="project_id" value="{{ $p->id }}">
+                        <input type="hidden" name="source" value="henting">
+                        <input type="hidden" name="type" value="mangler">
+                        <button type="button" class="btn btn-warning js-open-avvik"
+                            data-project-id="{{ $p->id }}"
+                            data-source="henting"                
+                            data-orderkey="{{ $p->external_number }}"
+                            data-title="{{ $p->title }}"
+                            data-customer="{{ $p->customer_name }}"
+                            data-address="{{ $p->address }}"
+                            data-supervisor="{{ $p->supervisor_name }}"
+                            data-assigned="{{ optional($p->updated_at)->format('Y-m-d') }}">
+                            Avvik
+                        </button>
                     </form>
                 </td>
             </tr>
@@ -109,7 +120,17 @@
                         <input type="hidden" name="project_id" value="{{ $p->id }}">
                         <input type="hidden" name="source" value="henting">
                         <input type="hidden" name="type" value="skade">
-                        <button class="btn btn-warning">Avvik</button>
+                        <button type="button" class="btn btn-warning js-open-avvik"
+                            data-project-id="{{ $p->id }}"
+                            data-source="henting"                
+                            data-orderkey="{{ $p->external_number }}"
+                            data-title="{{ $p->title }}"
+                            data-customer="{{ $p->customer_name }}"
+                            data-address="{{ $p->address }}"
+                            data-supervisor="{{ $p->supervisor_name }}"
+                            data-assigned="{{ optional($p->updated_at)->format('Y-m-d') }}">
+                            Avvik
+                        </button>
                     </form>
                 </td>
             </tr>
@@ -122,116 +143,131 @@
     {{-- TABLE C: Klar for henting --}}
     <h2 style="margin-top:24px;">Klar for henting</h2>
     @if($ready->isEmpty())
-        <p>Ingen klare prosjekter.</p>
+    <p>Ingen klare prosjekter.</p>
     @else
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Pr.nr.</th>
-                    <th>Tittel</th>
-                    <th>Plassering</th>
-                    <th>Klar siden</th>
-                    <th>Avtalt dato</th>
-                    <th>Handling</th>
-                </tr>
-            </thead>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Pr.nr.</th>
+            <th>Tittel</th>
+            <th>Plassering</th>
+            <th>Klar siden</th>
+            <th>Avtalt dato</th>
+            <th>Handling</th>
+        </tr>
+        </thead>
 
-            <tbody>
-            @foreach($ready as $p)
-            @php
-                $today = now()->startOfDay();
+        <tbody>
+        @foreach($ready as $p)
+        @php
+            $today = now()->startOfDay();
 
-                // 1) Badge for contextual hint (today / tomorrow)
-                $badge = null;
-                if ($p->pickup_time_from) {
-                    if ($p->pickup_time_from->isToday())        $badge = 'I dag';
-                    elseif ($p->pickup_time_from->isTomorrow()) $badge = 'I morgen';
-                }
+            // Badge hint
+            $badge = null;
+            if ($p->pickup_time_from) {
+            if ($p->pickup_time_from->isToday())        $badge = 'I dag';
+            elseif ($p->pickup_time_from->isTomorrow()) $badge = 'I morgen';
+            }
 
-                // 2) Late indicator (+Xd)
-                $lateDays = 0;
+            // Late indicator (+Xd)
+            $lateDays = 0;
+            if ($p->pickup_time_from && $p->pickup_time_from->lt($today) && !$p->pickup_collected_at) {
+            $lateDays = $p->pickup_time_from->diffInDays($today);
+            } elseif ($p->ready_at && $p->ready_at->lt($today->copy()->subDays(7)) && !$p->pickup_collected_at) {
+            $lateDays = $p->ready_at->diffInDays($today) - 7;
+            }
+        @endphp
 
-                // If pickup date is in the past and not collected → days overdue since agreed date
-                if ($p->pickup_time_from && $p->pickup_time_from->lt($today) && !$p->pickup_collected_at) {
-                    $lateDays = $p->pickup_time_from->diffInDays($today);
-                }
-                // Else, if no pickup date but it's been >7 days since ready → days beyond 7 since ready
-                elseif ($p->ready_at && $p->ready_at->lt($today->copy()->subDays(7)) && !$p->pickup_collected_at) {
-                    $lateDays = $p->ready_at->diffInDays($today) - 7;
-                }
-            @endphp
+        <tr class="{{ $lateDays > 0 ? 'row-late' : '' }}">
+            <td>{{ $p->external_number ?? '–' }}</td>
+            <td>{{ $p->title }}</td>
+            <td>{{ $p->staged_location ?: '–' }}</td>
+            <td>{{ $p->ready_at?->format('Y-m-d') ?? '–' }}</td>
 
-            <tr class="{{ $lateDays > 0 ? 'row-late' : '' }}">
-                <td>{{ $p->external_number ?? '–' }}</td>
-                <td>{{ $p->title }}</td>
+            {{-- Avtalt dato (read-only display) --}}
+            <td>
+            {{ $p->pickup_time_from?->format('Y-m-d') ?? '–' }}
+            @if($badge)
+                <div class="muted" style="margin-top:4px;">{{ $badge }}</div>
+            @endif
+            @if($lateDays > 0)
+                <div class="late-badge" style="margin-top:4px;">+{{ $lateDays }}d</div>
+            @endif
+            </td>
 
-                {{-- NEW: Plassering (read-only) --}}
-                <td>{{ $p->staged_location ?: '–' }}</td>
+            {{-- Handling: all buttons & inputs live here --}}
+            <td>
+            {{-- 1) Avtalt dato (sets/changes pickup date) --}}
+            <form id="schedule-{{ $p->id }}" method="POST" action="{{ route('projects.schedulePickup', $p) }}" style="display:inline-block;">
+                @csrf @method('PATCH')
+                <div style="display:inline-flex; gap:6px; align-items:center;">
+                <input type="date"
+                        name="pickup_date"
+                        value="{{ old('pickup_date', $p->pickup_time_from?->toDateString()) }}"
+                        class="form-input"
+                        required>
+                @php $agreed = (bool) $p->pickup_time_from; @endphp
+                <button class="btn {{ $agreed ? 'btn-agreed' : 'btn-secondary' }}">
+                    {{ $agreed ? 'Endre' : 'Avtal' }}
+                </button>
+                </div>
+            </form>
 
-                <td>{{ $p->ready_at?->format('Y-m-d') ?? '–' }}</td>
+            {{-- 2) Utlevert (requires avtalt dato) --}}
+            <form id="collect-{{ $p->id }}" method="POST" action="{{ route('projects.collected', $p) }}" style="display:inline-block; margin-left:6px;">
+                @csrf @method('PATCH')
+                <button class="btn btn-success">Utlevert</button>
+            </form>
 
-                <td>
-                    <form id="sched-{{ $p->id }}" method="POST" action="{{ route('projects.schedulePickup', $p) }}">
-                    @csrf @method('PATCH')
-                    <input type="date"
-                            name="pickup_date"
-                            value="{{ old('pickup_date', $p->pickup_time_from?->toDateString()) }}"
-                            class="form-date"
-                            required>
+            {{-- 3) Avvik (opens modal) --}}
+            <button type="button" class="btn btn-warning js-open-avvik" style="margin-left:6px;"
+                data-project-id="{{ $p->id }}"
+                data-source="henting"
+                data-orderkey="{{ $p->external_number }}"
+                data-title="{{ $p->title }}"
+                data-customer="{{ $p->customer_name }}"
+                data-address="{{ $p->address }}"
+                data-supervisor="{{ $p->supervisor_name }}"
+                data-assigned="{{ optional($p->updated_at)->format('Y-m-d') }}">
+                Avvik
+            </button>
+            </td>
+        </tr>
+        @endforeach
+        </tbody>
+    </table>
 
-                    @if($badge)
-                        <div class="muted" style="margin-top:6px">{{ $badge }}</div>
-                    @endif
-                    @if($lateDays > 0)
-                        <div class="late-badge" style="margin-top:6px">+{{ $lateDays }}d</div>
-                    @endif
-                </td>
-
-                <td>
-                    @php $agreed = (bool) $p->pickup_time_from; @endphp
-
-                    <button class="btn {{ $agreed ? 'btn-agreed' : 'btn-secondary' }}">
-                    {{ $agreed ? 'Endre dato' : 'Avtalt dato' }}
-                    </button>
-
-                    </form>
-
-                    <form method="POST" action="{{ route('projects.collected', $p) }}" style="display:inline-block;margin-left:6px;">
-                    @csrf @method('PATCH')
-                    <button class="btn btn-success">Utlevert</button>
-                    </form>
-
-                    <form method="POST" action="{{ route('avvik.store') }}" style="display:inline-block;margin-left:6px;">
-                    @csrf
-                    <input type="hidden" name="project_id" value="{{ $p->id }}">
-                    <input type="hidden" name="source" value="henting">
-                    <input type="hidden" name="type" value="annet">
-                    <button class="btn btn-warning">Avvik</button>
-                    </form>
-                </td>
-            </tr>
-            
-            @endforeach
-            </tbody>
-
-        </table>
-        {{ $ready->links('pagination::bootstrap-5') }}
+    {{ $ready->links('pagination::bootstrap-5') }}
     @endif
 
+
+
     @include('partials.toast')
+    @include('partials.avvik-modal')
+    @include('partials.avvik-modal-js')
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-        document.querySelectorAll('form[id^="prep-"]').forEach(function (f) {
-            const input = f.querySelector('input[name="staged_location"]');
-            const btn   = f.querySelector('button.btn.btn-success');
-            if (!input || !btn) return;
-            const toggle = () => btn.disabled = !input.value.trim();
-            input.addEventListener('input', toggle);
-            toggle();
+        // Require Avtalt dato before allowing "Utlevert"
+        document.querySelectorAll('form[id^="collect-"]').forEach(function (collectForm) {
+            collectForm.addEventListener('submit', function (e) {
+            const row = collectForm.closest('tr');
+            const dateInput = row ? row.querySelector('form[id^="schedule-"] input[name="pickup_date"]') : null;
+            if (!dateInput || !dateInput.value.trim()) {
+                e.preventDefault();
+                if (dateInput) {
+                // Show native browser validation bubble on the actual date field
+                dateInput.focus();
+                dateInput.reportValidity();
+                } else {
+                alert('Sett «Avtalt dato» først.');
+                }
+            }
+            });
         });
-    });
+        });
     </script>
+
 </body>
 </html>
 

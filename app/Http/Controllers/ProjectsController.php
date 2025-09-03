@@ -214,113 +214,107 @@ class ProjectsController extends Controller
     // D) Handed out to customer
     public function markCollected(\App\Models\Project $project)
     {
+        if (is_null($project->pickup_time_from)) {
+            return back()->with('status', 'Sett «Avtalt dato» først.');
+        }
         $project->update(['pickup_collected_at' => now()]);
-        return back()->with('status', 'Utlevert ✓');
+        return back()->with('status', 'Utlevert');
     }
 
     // Planing
     public function planlegging(\Illuminate\Http\Request $request)
     {
-        // origin (GG) — set these in .env or config if you know them
-        $originLat = (float) config('services.map.origin_lat', 0);
-        $originLng = (float) config('services.map.origin_lng', 0);
-
         $tz    = config('app.timezone', 'Europe/Oslo');
         $today = \Illuminate\Support\Carbon::now($tz)->startOfDay();
         $in7   = (clone $today)->addDays(7)->endOfDay();
         $in14  = (clone $today)->addDays(14)->endOfDay();
-        $after14Start = (clone $today)->addDays(15)->startOfDay();
 
-        // Base: only montering, not completed, not “i oppdrag”
-        $base = $this->queryForBucket('montering', $request)
-            ->whereNull('mount_completed_at')
-            ->whereNull('mount_started_at'); // exclude "I oppdrag" from map & tables
+        $originLat = (float) config('services.map.origin_lat', 0);
+        $originLng = (float) config('services.map.origin_lng', 0);
 
-        // 1) Already delivered to us
+        // Exclude items with OPEN deviations
+        $base = \App\Models\Project::query()
+        ->where('bucket', 'montering')
+        ->whereDoesntHave('deviations', fn($q) => $q->where('status','open'))
+        ->whereNull('mount_started_at')     // exclude "I oppdrag"
+        ->whereNull('mount_completed_at');  // exclude "Utført"
+
+        // Tables
         $levert = (clone $base)
             ->whereNotNull('delivered_at')
             ->orderByDesc('delivered_at')
             ->get();
 
-        // 2) Delivering within 7 days (upcoming)
         $leveres7 = (clone $base)
             ->whereNull('delivered_at')
-            ->whereNotNull('delivery_date')
-            ->whereBetween('delivery_date', [$today->toDateString(), $in7->toDateString()])
+            ->whereBetween('delivery_date', [$today, $in7])
             ->orderBy('delivery_date')
             ->get();
 
-        // 3) Delivering in 8–14 days
+        $after7Start = (clone $today)->addDays(8)->startOfDay();
         $leveres14 = (clone $base)
             ->whereNull('delivered_at')
-            ->whereNotNull('delivery_date')
-            ->whereBetween('delivery_date', [ $today->copy()->addDays(8)->toDateString(), $in14->toDateString() ])
+            ->whereBetween('delivery_date', [$after7Start, $in14])
             ->orderBy('delivery_date')
             ->get();
 
-        // 4) Delivering >14 days
+        $after14Start = (clone $today)->addDays(15)->startOfDay();
         $leveres15plus = (clone $base)
             ->whereNull('delivered_at')
-            ->whereNotNull('delivery_date')
             ->where('delivery_date', '>=', $after14Start->toDateString())
             ->orderBy('delivery_date')
             ->get();
 
-
-        //Km in tables
-        $originLat = (float) config('services.map.origin_lat', 0);
-        $originLng = (float) config('services.map.origin_lng', 0);
-
-        // annotate each table row with distance_km (and optionally avvik flag)
+        // Annotate: distance + recently resolved avvik (last 7 days)
+        $recentSince = \Illuminate\Support\Carbon::now($tz)->subDays(7);
         foreach ([$levert, $leveres7, $leveres14, $leveres15plus] as $set) {
-            $set->each(function ($p) use ($originLat, $originLng) {
-                $hasOrigin = ($originLat !== 0.0 && $originLng !== 0.0);
-                $hasCoords = ($p->geo_lat !== null && $p->geo_lng !== null);
-
-                $p->distance_km = ($hasOrigin && $hasCoords)
-                    ? round($this->haversineKm((float)$originLat, (float)$originLng, (float)$p->geo_lat, (float)$p->geo_lng), 1)
+            $set->each(function ($p) use ($originLat, $originLng, $recentSince) {
+                $p->distance_km = ($p->geo_lat && $p->geo_lng && $originLat && $originLng)
+                    ? round($this->haversineKm($originLat, $originLng, $p->geo_lat, $p->geo_lng), 1)
                     : null;
 
-                $p->has_open_avvik = $p->deviations()->where('status','open')->exists();
+                // has a deviation that was resolved recently
+                $p->had_recent_avvik = $p->deviations()
+                    ->where('status','resolved')
+                    ->whereNotNull('resolved_at')
+                    ->where('resolved_at','>=',$recentSince)
+                    ->exists();
             });
         }
 
-        // Map icons
-        $originLat = (float) config('services.map.origin_lat', 0);
-        $originLng = (float) config('services.map.origin_lng', 0);
-
-        $tz    = config('app.timezone', 'Europe/Oslo');
-        $today = \Illuminate\Support\Carbon::now($tz)->startOfDay();
-        $in7   = (clone $today)->addDays(7)->endOfDay();
-        $in14  = (clone $today)->addDays(14)->endOfDay();
-
-        // Build map items from one combined query (only rows with coords)
+        // Map markers: also exclude OPEN deviations
         $forMap = \App\Models\Project::query()
-            ->where('bucket', 'montering')
+            ->where('bucket','montering')
             ->whereNull('mount_completed_at')
-            ->whereNull('mount_started_at') // exclude "I oppdrag"
+            ->whereNull('mount_started_at') // exclude “I oppdrag”
+            ->whereDoesntHave('deviations', fn($q) => $q->where('status','open'))
             ->whereNotNull('geo_lat')->whereNotNull('geo_lng')
             ->get();
 
-        $mapItems = $forMap->map(function ($p) use ($today, $in7, $in14) {
-            $hasOpenAvvik = $p->deviations()->where('status','open')->exists();
+            $allForMap = collect()
+            ->merge($levert)
+            ->merge($leveres7)
+            ->merge($leveres14)
+            ->merge($leveres15plus)
+            ->unique('id')                    
+            ->filter(fn($p) => $p->geo_lat && $p->geo_lng);
 
-            // color by same rules as the tables
-            $color = 'gray';
-            if ($p->delivered_at) {
+        
+            $mapItems = $allForMap->map(function ($p) use ($today, $in7, $in14) {
+            if (!empty($p->had_recent_avvik)) {
+                $color = 'red';
+            } elseif ($p->delivered_at) {
                 $color = 'green';
             } elseif ($p->delivery_date) {
                 if ($p->delivery_date->between($today, $in7)) {
                     $color = 'orange';
                 } elseif ($p->delivery_date->gt($in14)) {
-                    $color = 'gray';
+                    $color = 'dark';
                 } else {
-                    // 8–14 dager
                     $color = 'gray';
                 }
-            }
-            if ($hasOpenAvvik) {
-                $color = 'orange-strong';
+            } else {
+                $color = 'gray';
             }
 
             return [
@@ -335,19 +329,8 @@ class ProjectsController extends Controller
             'levert','leveres7','leveres14','leveres15plus',
             'mapItems','originLat','originLng'
         ));
-
-
-        // annotate rows: distance and has open avvik
-        foreach ([$levert, $leveres7, $leveres14, $leveres15plus] as $set) {
-            $set->each(function ($p) use ($originLat, $originLng) {
-                $p->has_open_avvik = $p->deviations()->where('status','open')->exists();
-                $p->distance_km    = ($p->geo_lat && $p->geo_lng && $originLat && $originLng)
-                                    ? $this->haversineKm($originLat, $originLng, $p->geo_lat, $p->geo_lng)
-                                    : null;
-            });
-        }
-
     }
+
 
     // --- helpers ---
     private function haversineKm(float $lat1, float $lon1, float $lat2, float $lon2): float

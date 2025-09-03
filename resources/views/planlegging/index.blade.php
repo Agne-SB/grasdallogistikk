@@ -36,7 +36,8 @@
     </thead>
     <tbody>
         @foreach($levert as $p)
-        <tr class="{{ $p->has_open_avvik ? 'row-avvik' : '' }}">
+        <tr class="{{ $p->had_recent_avvik ? 'row-avvik' : '' }}"
+            @if($p->had_recent_avvik) title="Nylig løst avvik" @endif>
         <td>{{ $p->external_number }}</td>
         <td>{{ $p->customer_name }}</td>
         <td>{{ $p->address }}</td>
@@ -67,7 +68,8 @@
     <tbody>
         @foreach($leveres7 as $p)
         @php $left = now()->startOfDay()->diffInDays($p->delivery_date, false); @endphp
-        <tr class="{{ $p->has_open_avvik ? 'row-avvik' : '' }}">
+        <tr class="{{ $p->had_recent_avvik ? 'row-avvik' : '' }}"
+            @if($p->had_recent_avvik) title="Nylig løst avvik" @endif>
         <td>{{ $p->external_number }}</td>
         <td>{{ $p->customer_name }}</td>
         <td>{{ $p->address }}</td>
@@ -99,7 +101,8 @@
     <tbody>
         @foreach($leveres14 as $p)
         @php $left = now()->startOfDay()->diffInDays($p->delivery_date, false); @endphp
-        <tr class="{{ $p->has_open_avvik ? 'row-avvik' : '' }}">
+        <tr class="{{ $p->had_recent_avvik ? 'row-avvik' : '' }}"
+            @if($p->had_recent_avvik) title="Nylig løst avvik" @endif>
         <td>{{ $p->external_number }}</td>
         <td>{{ $p->customer_name }}</td>
         <td>{{ $p->address }}</td>
@@ -117,7 +120,7 @@
     @if($leveres15plus->isEmpty())
     <p>Ingen leveranser i mer en 14dager.</p>
     @else
-    <table class="table">
+    <table class="table table-bucket-dark">
     <thead>
         <tr>
         <th>Pr.nr.</th>
@@ -131,7 +134,8 @@
     <tbody>
         @foreach($leveres15plus as $p)
         @php $left = now()->startOfDay()->diffInDays($p->delivery_date, false); @endphp
-        <tr class="{{ $p->has_open_avvik ? 'row-avvik' : '' }}">
+        <tr class="{{ $p->had_recent_avvik ? 'row-avvik' : '' }}"
+            @if($p->had_recent_avvik) title="Nylig løst avvik" @endif>
         <td>{{ $p->external_number }}</td>
         <td>{{ $p->customer_name }}</td>
         <td>{{ $p->address }}</td>
@@ -165,7 +169,8 @@
         return;
     }
 
-    const colorMap = { green:'#6c733d', orange:'#ff5f00', 'orange-strong':'#ff5f00', gray:'#8c8c88',};
+    const colorMap = { green:'#6c733d', orange:'#ff5f00', 'red':'#d32f2f', gray:'#8c8c88', dark:'#202426' };
+
     const bounds = L.latLngBounds();
 
     items.forEach(it => {
@@ -173,8 +178,8 @@
         const c = colorMap[it.color] || '#6c733d';
         const m = L.circleMarker([it.lat, it.lng], {
         radius: 7, color: c, fillColor: c,
-        fillOpacity: it.color === 'orange-strong' ? 1 : 0.7,
-        weight: it.color === 'orange-strong' ? 3 : 1.5
+        fillOpacity: it.color === 'red' ? 1 : 0.7,
+        weight: it.color === 'red' ? 3 : 1.5
         });
         if (it.label) m.bindTooltip(it.label, {direction:'top'});
         m.addTo(map);
