@@ -9,8 +9,7 @@
 <body>
     @include('partials.navbar')
 
-    <h1>Welcome to Grasdal Logistic</h1>
-    <p>Text and functions will be added later.</p>
+    <h1>Velkommen til Græsdal Glass logistikk</h1>
 
     @php
         use Illuminate\Support\Carbon;
@@ -106,7 +105,7 @@
             <thead>
             <tr>
                 <th>Dato</th>
-                <th>OrderKey</th>
+                <th>Pr.nr.</th>
                 <th>Tittel</th>
                 <th>Ansvarlig</th>
                 <th>Merknad</th>
