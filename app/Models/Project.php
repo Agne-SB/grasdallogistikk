@@ -20,7 +20,7 @@ class Project extends Model
         'pickup_time_from', 'pickup_time_to', 'appointment_notes',
         'pickup_collected_at', 'requires_appointment', 'mount_started_at', 'mount_completed_at',
         'geo_lat','geo_lng', 'geocoded_at','geocode_provider', 'geocode_attempts','geocode_failed_at',
-        'geocode_last_error',
+        'geocode_last_error','closed_at',
     ];
 
     protected $casts = [
@@ -47,6 +47,8 @@ class Project extends Model
         'geo_lng'=>'float',
         'geocoded_at'=>'datetime',
         'geocode_failed_at' => 'datetime',
+        
+        'closed_at' => 'datetime',
     ];
 
     public function deviations()
@@ -70,5 +72,9 @@ class Project extends Model
         return null;
     }
 
+    public function setVendorStatusAttribute($value)
+    {
+        $this->attributes['vendor_status'] = strtolower($value);
+    }
 
 }

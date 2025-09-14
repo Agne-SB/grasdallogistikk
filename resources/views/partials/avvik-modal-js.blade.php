@@ -20,6 +20,7 @@
     const closeBtns = modal.querySelectorAll('.js-avvik-close');
     const fields = {
         projectId:  document.getElementById('avvik-project-id'),
+        stockId:    document.getElementById('avvik-stock-id'),
         source:     document.getElementById('avvik-source'),
         orderkey:   document.getElementById('avvik-orderkey'),
         title:      document.getElementById('avvik-project-title'),
@@ -31,15 +32,27 @@
     };
 
     function openModal(data){
-        fields.projectId.value      = data.projectId || '';
-        fields.source.value         = data.source || ''; // 'henting' | 'montering'
-        fields.orderkey.textContent = data.orderkey || '–';
-        fields.title.textContent    = data.title || '–';
-        fields.customer.textContent = data.customer || '–';
-        fields.address.textContent  = data.address || '–';
+        // FIX: fields, not ffields
+        fields.projectId.value = data.projectId || '';
+        fields.stockId.value   = data.stockId || '';
+
+        // if stock item is set, clear projectId to avoid sending both
+        if (fields.stockId.value) fields.projectId.value = '';
+
+        // normalize source to lowercase so the label map works
+        const src = (data.source || '').toLowerCase();
+        fields.source.value = src; // 'henting' | 'montering' | 'varer'
+
+        fields.orderkey.textContent   = data.orderkey || '–';
+        fields.title.textContent      = data.title || '–';
+        fields.customer.textContent   = data.customer || '–';
+        fields.address.textContent    = data.address || '–';
         fields.supervisor.textContent = data.supervisor || '–';
-        fields.sourceLbl.textContent  = data.source === 'henting' ? 'HO' : (data.source === 'montering' ? 'MO' : '–');
-        fields.assigned.textContent   = data.assigned || '–';
+
+        const srcMap = { henting: 'HO', montering: 'MO', varer: 'LA' };
+        fields.sourceLbl.textContent = srcMap[src] ?? (src || '–');
+
+        fields.assigned.textContent = data.assigned || '–';
 
         modal.classList.add('is-open');
         document.body.classList.add('modal-open');
@@ -66,6 +79,7 @@
 
         openModal({
         projectId:  get('projectId'),
+        stockId:    get('stockId'),
         source:     get('source') || (document.body.dataset.pageSource || ''), // fallback to page-level
         orderkey:   get('orderkey'),
         title:      get('title'),

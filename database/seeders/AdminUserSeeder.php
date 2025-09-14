@@ -12,7 +12,7 @@ class AdminUserSeeder extends Seeder
     public function run(): void
     {
         $email = 'agne@grasdal.no';
-        $password = 'ChangeMeNow_!234'; // change after first login
+        $password = 'ChangeMeNow_234!'; // change after first login
 
         $user = User::firstOrCreate(
             ['email' => $email],

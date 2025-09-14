@@ -40,7 +40,14 @@
             @foreach($open as $d)
             <tr>
                 <td>{{ $d->project?->external_number ?? '–' }}</td>
-                <td>{{ $d->project?->title ?? '–' }}</td>
+                <td>
+                {{ $d->subject_title }}
+                @if($d->source === 'varer')
+                    <div class="muted">Leverandør: {{ $d->stockItem->supplier ?? '—' }}</div>
+                @else
+                    <div class="muted">Pr.nr.: {{ $d->project->external_number ?? '—' }}</div>
+                @endif
+                </td>
                 <td>{{ ucfirst($d->source) }}</td>
                 <td>{{ $d->type }}</td>
                 <td>{{ Str::limit($d->note, 80) }}</td>

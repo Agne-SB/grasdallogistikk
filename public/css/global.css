@@ -522,21 +522,88 @@
 
     .nav-link.as-button{ background:transparent; border:0; padding:0; font:inherit; color:inherit; cursor:pointer; }
 
-    /* === Admin layout === */
-    .admin-shell{ display:grid; grid-template-columns: 240px 1fr; min-height: calc(100vh - 60px); } /* adjust -60px if header height differs */
-    .admin-sidebar{ border-right:1px solid #e5e7eb; padding:16px; background:#f9fafb; }
-    .admin-side-title{ font-weight:700; margin-bottom:10px; }
-    .admin-side-nav{ display:grid; gap:6px; }
-    .admin-side-link{ display:block; padding:8px 10px; border-radius:8px; text-decoration:none; color:inherit; }
-    .admin-side-link.active{ background:#eef2ff; }
-    .admin-content{ padding:20px; }
+    /* ===== Admin topbar (desktop) ===== */
+    .admin-topbar{ position: sticky; top: 0; z-index: 60; background:#fff; border-bottom:1px solid #e5e7eb; }
+    .admin-topbar__inner{
+    max-width: 1200px; margin: 0 auto; padding: 8px 16px;
+    display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px;
+    }
+    .admin-brand{ font-weight: 700; color: #6c733d; text-decoration: none; }
+    .admin-topbar__center{ justify-self: center; }
+    .admin-topbar__right{ justify-self: end; }
 
+    .admin-nav{ display: flex; align-items: center; gap: 8px; }
+    .admin-nav a, .linklike{
+    display: inline-flex; align-items: center; padding: 8px 10px; border-radius: 8px;
+    text-decoration: none; color: inherit; font: inherit; background: transparent; border: 1px solid transparent;
+    }
+    .admin-nav a:hover, .linklike:hover{ background: #eef0e5; border-color: #e5e7eb; }
+    .admin-nav a.active{ background: #6c733d; color: #fff; border-color: #6c733d; }
 
-    /* Tables (admin + app) */
-    .table-wrap { overflow: auto; border: 1px solid #e5e7eb; border-radius: 12px; }
-    .table { width: 100%; border-collapse: collapse; }
-    .table th, .table td { padding: .6rem .8rem; border-top: 1px solid #e5e7eb; text-align: left; }
-    .table thead th { background: #f9fafb; border-top: 0; }
+    .linklike{ background: transparent; border: 0; cursor: pointer; }
+
+    /* Admin content (no sidebar) */
+    .admin-shell{ display: block; min-height: calc(100vh - 60px); }
+    .admin-content{ padding: 20px; }
+
+    /* --- Table container: no inner vertical scroll --- */
+    .table-wrap{
+    /* keep your border/radius; just ensure no vertical viewport inside the table */
+    overflow-x: auto;
+    overflow-y: visible;
+    max-height: none;
+    }
+
+    /* Optional: if you added sticky header earlier and want to disable it: */
+    /* .table-admin thead th { position: static; } */
+
+    /* --- Actions cell: inline, tidy, fixed button widths --- */
+    .actions-cell{ text-align: left; }
+
+    .actions-inline{
+    display: inline-flex;
+    gap: 6px;
+    align-items: left;
+    justify-content: flex-end;
+    flex-wrap: wrap;    /* allows wrapping if very many actions */
+    white-space: nowrap;
+    }
+
+    /* Fixed-width action buttons so labels don't resize them */
+    .btn-fixed{
+    width: 120px;               /* adjust as you like (120–140px works well) */
+    justify-content: left;    /* centers text inside fixed width */
+    }
+
+    /* Compact icon button for delete */
+    .btn-icon{
+    width: 38px; height: 38px;  /* matches your control height */
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 0;
+    }
+    .btn-icon svg{ pointer-events: none; }
+
+    /* Ensure ghost button exists (if not already defined) */
+    .btn-ghost{
+    background: transparent; color: #202426; border: 1px solid #e5e7eb;
+    }
+    .btn-ghost:hover{
+    background: #eef0e5; border-color: #e5e7eb;
+    }
+
+    /*Closed project */
+    .col-actions{ width: 260px; text-align: right; }
+    .actions-cell{ text-align: right; }
+    .actions-inline{ display:inline-flex; gap:6px; align-items:center; justify-content:flex-end; flex-wrap:wrap; white-space:nowrap; }
+    .btn-fixed{ width:120px; justify-content:center; }
+    .btn-icon{ width:38px; height:38px; display:inline-flex; align-items:center; justify-content:center; padding:0; }
+
+    /*goods*/
+    .col-actions{ width: 420px; text-align: right; }
+    .actions-cell{ text-align: right; }
+    .actions-inline{ display:inline-flex; gap:6px; align-items:center; justify-content:flex-end; flex-wrap:wrap; white-space:nowrap; }
+    .btn-fixed{ width:120px; justify-content:center; }
+    .btn-icon{ width:38px; height:38px; display:inline-flex; align-items:center; justify-content:center; padding:0; }
 
 
     @media (max-width: 640px) {

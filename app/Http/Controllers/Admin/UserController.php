@@ -48,19 +48,24 @@ class UserController extends Controller
         $user->is_active  = (bool)($data['is_active'] ?? true);
         $user->forceFill(['role' => $data['role']])->save();
 
-        // Send reset-lenke så brukeren setter eget passord
+        // Send reset link for reseting psw
         Password::sendResetLink(['email' => $user->email]);
 
         return redirect()->route('admin.users.index')
             ->with('ok', "Bruker opprettet og tilbakestillingslenke sendt til {$user->email}.");
     }
 
+
     public function activate(User $user)
     {
         if (auth()->id() === $user->id) {
             return back()->with('err', 'Du kan ikke aktivere/deaktivere din egen konto her.');
         }
-        $user->update(['is_active' => true]);
+
+        // Avoid mass assignment
+        $user->is_active = true;   // change to $user->active if your column is named 'active'
+        $user->save();
+
         return back()->with('ok', "Aktivert: {$user->email}");
     }
 
@@ -69,28 +74,39 @@ class UserController extends Controller
         if (auth()->id() === $user->id) {
             return back()->with('err', 'Du kan ikke deaktivere din egen konto.');
         }
-        $user->update(['is_active' => false]);
+
+        $user->is_active = false;
+        $user->save();
+
         return back()->with('ok', "Deaktivert: {$user->email}");
     }
 
     public function setRole(Request $request, User $user)
     {
-        $request->validate(['role' => ['required', Rule::in(['admin','user'])]]);
+        // Capture validated data
+        $data = $request->validate([
+            'role' => ['required', Rule::in(['admin','user'])],
+        ]);
 
-        // Ikke fjern siste admin
-        if ($user->role === 'admin' && $request->role !== 'admin') {
+        // Do not dele last admin
+        if ($user->role === 'admin' && $data['role'] !== 'admin') {
             $otherAdmins = User::where('role','admin')->where('id','!=',$user->id)->count();
             if ($otherAdmins === 0) {
                 return back()->with('err', 'Kan ikke fjerne siste admin.');
             }
         }
-        // Ikke nedgrader deg selv her
-        if (auth()->id() === $user->id && $request->role !== 'admin') {
+
+        // Not to downgrade selv
+        if (auth()->id() === $user->id && $data['role'] !== 'admin') {
             return back()->with('err', 'Du kan ikke nedgradere deg selv.');
         }
 
-        $user->forceFill(['role' => $request->role])->save();
-        return back()->with('ok', "Rolle oppdatert for {$user->email}.");
+        // Direct assignment, then save
+        $user->role = $data['role'];
+        $user->save();
+
+        return redirect()->route('admin.users.index')
+            ->with('ok', "Oppdatert rolle for {$user->name} til {$data['role']}.");
     }
 
     public function sendReset(User $user)
@@ -98,4 +114,19 @@ class UserController extends Controller
         Password::sendResetLink(['email' => $user->email]);
         return back()->with('ok', "Tilbakestillingslenke sendt til {$user->email}.");
     }
+
+    public function destroy(User $user)
+    {
+        if ($user->is_active) {
+            return back()->with('err', 'Kan ikke slette en aktiv bruker.');
+        }
+        if (auth()->id() === $user->id) {
+            return back()->with('err', 'Du kan ikke slette din egen konto.');
+        }
+
+        $user->delete();
+
+        return back()->with('ok', "Slettet: {$user->email}");
+    }
+
 }

@@ -12,12 +12,13 @@
         <a href="{{ url('/henting') }}"     class="nav-link {{ request()->is('henting*')     ? 'active' : '' }}">Henting</a>
         <a href="{{ url('/planlegging') }}" class="nav-link {{ request()->is('planlegging*') ? 'active' : '' }}">Planlegging</a>
         <a href="{{ url('/avvik') }}"       class="nav-link {{ request()->is('avvik*')       ? 'active' : '' }}">Avvik</a>
+        <a href="{{ route('varer.index') }}" class="nav-link {{ request()->routeIs('varer.*') ? 'active' : '' }}">Varer til lager</a>
         </nav>
 
         <div class="nav-right">
         @auth
             @if (auth()->user()->role === 'admin')
-            <a href="{{ route('admin.dashboard') }}"
+            <a href="{{ route('admin.users.index') }}"
                 class="nav-link {{ request()->is('admin*') ? 'active' : '' }}">
                 Admin
             </a>

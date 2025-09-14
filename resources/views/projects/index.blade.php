@@ -88,7 +88,7 @@
                         <button type="submit" name="bucket" value="henting"   class="btn btn-warning">HO</button>
                         <button type="submit" name="bucket" value="montering" class="btn btn-success">MP</button>
                         @if(session('saved_project_id') == $p->id)
-                        <span class="saved-badge">Lagret ✓</span>
+                        <span class="saved-badge">Lagret</span>
                         @endif
                     </form>
                     </div>
@@ -128,7 +128,6 @@
         if (!actions) return;
 
         const fields = tr.querySelectorAll('.js-row-field');
-        // Remember initial values
         fields.forEach(el => el.dataset.initial = (el.value ?? ''));
 
         const refresh = () => {
@@ -141,10 +140,10 @@
         el.addEventListener('change', refresh);
         });
 
-        refresh(); // set initial state on page load
+        refresh();
     });
 
-    // Optional: auto-hide the "Lagret ✓" badge after 3s
+    // auto-hide the "Lagret" badge 
     setTimeout(() => {
         document.querySelectorAll('.saved-badge').forEach(el => el.remove());
     }, 3000);

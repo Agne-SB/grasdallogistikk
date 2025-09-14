@@ -5,6 +5,9 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\ProjectsController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\DeviationController;
+use App\Http\Controllers\Admin\ClosedProjectController;
+use App\Http\Controllers\Admin\ProjectLifecycleController;
+use App\Http\Controllers\StockController;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
@@ -86,7 +89,7 @@ Route::middleware('auth')->group(function () {
 
     // Admin area (admins only)
     Route::prefix('admin')->middleware('admin')->group(function () {
-        Route::get('/', fn () => view('admin.dashboard'))->name('admin.dashboard');
+        Route::get('/', fn () => view('admin.users.index'))->name('admin.users.index');
 
         Route::get('/users',        [\App\Http\Controllers\Admin\UserController::class, 'index'])->name('admin.users.index');
         Route::get('/users/create', [\App\Http\Controllers\Admin\UserController::class, 'create'])->name('admin.users.create');
@@ -96,8 +99,16 @@ Route::middleware('auth')->group(function () {
         Route::patch('/users/{user}/deactivate', [\App\Http\Controllers\Admin\UserController::class, 'deactivate'])->name('admin.users.deactivate');
         Route::patch('/users/{user}/role',       [\App\Http\Controllers\Admin\UserController::class, 'setRole'])->name('admin.users.role');
         Route::post('/users/{user}/send-reset',  [\App\Http\Controllers\Admin\UserController::class, 'sendReset'])->name('admin.users.sendReset');
+        Route::delete('/admin/users/{user}', [\App\Http\Controllers\Admin\UserController::class, 'destroy'])->name('admin.users.destroy');
+        
+        Route::get('/admin/closed-projects', [ClosedProjectController::class, 'index'])->name('admin.closed.index');
+        Route::patch('/admin/closed-projects/{project}/reopen', [ClosedProjectController::class, 'reopen'])->name('admin.closed.reopen');
+        Route::delete('/admin/closed-projects/{project}', [ClosedProjectController::class, 'destroy'])->name('admin.closed.destroy');
+        
+        Route::patch('/admin/projects/{project}/complete', [ProjectLifecycleController::class, 'complete'])->name('admin.projects.complete');
+        Route::patch('/admin/projects/{project}/close', [ClosedProjectController::class, 'close'])->name('admin.projects.close');
 
-        // (Users management routes will be added here
+        // (Admin management routes will be added here
     });
 
     // App pages
@@ -128,4 +139,13 @@ Route::middleware('auth')->group(function () {
     // Montering flow
     Route::patch('/projects/{project}/mount-start', [ProjectsController::class, 'markMountStart'])->name('projects.mountStart');
     Route::patch('/projects/{project}/mount-done',  [ProjectsController::class, 'markMountDone'])->name('projects.mountDone');
+
+    
+    // Bestilling til lager flow
+    Route::get   ('/varer',                 [StockController::class, 'index'])->name('varer.index');
+    Route::post  ('/varer',                 [StockController::class, 'store'])->name('varer.store');
+    Route::patch ('/varer/{item}/status',   [StockController::class, 'updateStatus'])->name('varer.status');
+    Route::delete('/varer/{item}',          [StockController::class, 'destroy'])->name('varer.destroy');
+
+
 });

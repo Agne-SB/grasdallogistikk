@@ -17,6 +17,7 @@
         date:    modal.querySelector('input[name="delivery_date"]'),
         destHO:  modal.querySelector('input[name="destination"][value="henting"]'),
         destMO:  modal.querySelector('input[name="destination"][value="montering"]'),
+        destLA:  modal.querySelector('input[name="destination"][value="varer"]'),
     };
 
     function openResolve(btn){
@@ -38,6 +39,7 @@
         const suggest = btn.dataset.suggestDest || btn.dataset.source || '';
         F.destHO.checked = (suggest === 'henting');
         F.destMO.checked = (suggest === 'montering');
+        if (F.destLA) F.destLA.checked = (suggest === 'varer');
 
         modal.classList.add('is-open'); document.body.classList.add('modal-open');
         (F.goods.value ? F.date : F.goods).focus();

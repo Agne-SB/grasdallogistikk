@@ -180,7 +180,7 @@
                 </form>
 
                 {{-- Utført (remove from list) --}}
-                <form method="POST" action="{{ route('projects.mountDone', $p) }}" style="display:inline-block;margin-left:6px;">
+                <form method="POST" action="{{ route('admin.projects.close', $p) }}" style="display:inline-block;margin-left:6px;">
                     @csrf @method('PATCH')
                     <button class="btn btn-success">Utført</button>
                 </form>

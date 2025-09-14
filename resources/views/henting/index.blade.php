@@ -214,7 +214,7 @@
             </form>
 
             {{-- 2) Utlevert (requires avtalt dato) --}}
-            <form id="collect-{{ $p->id }}" method="POST" action="{{ route('projects.collected', $p) }}" style="display:inline-block; margin-left:6px;">
+            <form id="collect-{{ $p->id }}" method="POST" action="{{ route('admin.projects.close', $p) }}" style="display:inline-block; margin-left:6px;">
                 @csrf @method('PATCH')
                 <button class="btn btn-success">Utlevert</button>
             </form>

@@ -38,6 +38,7 @@
             <div style="display:flex; gap:12px; align-items:center;">
             <label><input type="radio" name="destination" value="henting" required> Henting (HO)</label>
             <label><input type="radio" name="destination" value="montering" required> Montering (MO)</label>
+            <label><input type="radio" name="destination" value="varer"> Varer (LA)</label>
             </div>
 
             <label class="modal__label" style="margin-top:8px;">Løsningsnotat (valgfritt)</label>

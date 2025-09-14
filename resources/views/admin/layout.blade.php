@@ -7,27 +7,14 @@
     <title>Admin</title>
 </head>
 <body>
-    @include('partials.navbar')
+    @include('admin.partials.topnav')
 
     <div class="admin-shell">
-        <aside class="admin-sidebar">
-        <div class="admin-side-title">Admin</div>
-        <nav class="admin-side-nav">
-            <a href="{{ url('/admin/users') }}"
-            class="admin-side-link {{ request()->is('admin/users*') ? 'active' : '' }}">
-            Brukere
-            </a>
-
-            <a href="{{ url('/admin/closed-projects') }}"
-            class="admin-side-link {{ request()->is('admin/closed-projects*') ? 'active' : '' }}">
-            Lukkede prosjekter
-            </a>
-        </nav>
-        </aside>
-
         <main class="admin-content">
-        @yield('content')
+            @yield('content')
         </main>
     </div>
+    @include('partials.toast')
 </body>
+
 </html>

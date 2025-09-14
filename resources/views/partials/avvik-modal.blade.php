@@ -12,7 +12,8 @@
         <form id="avvik-form" method="POST" action="{{ route('avvik.store') }}">
         @csrf
         <input type="hidden" name="project_id" id="avvik-project-id">
-        <input type="hidden" name="source" id="avvik-source"> {{-- henting | montering --}}
+        <input type="hidden" name="stock_item_id" id="avvik-stock-id"> 
+        <input type="hidden" name="source" id="avvik-source"> {{-- henting | montering | varer --}}
 
         <h2 id="avvik-title" class="modal__title">
         Avvik <span id="avvik-orderkey">–</span>
