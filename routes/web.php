@@ -8,6 +8,7 @@ use App\Http\Controllers\DeviationController;
 use App\Http\Controllers\Admin\ClosedProjectController;
 use App\Http\Controllers\Admin\ProjectLifecycleController;
 use App\Http\Controllers\StockController;
+use App\Http\Controllers\Admin\UserController;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
@@ -88,27 +89,32 @@ Route::middleware('auth')->group(function () {
     Route::get('/', fn () => redirect()->route('home'))->name('home');
 
     // Admin area (admins only)
-    Route::prefix('admin')->middleware('admin')->group(function () {
-        Route::get('/', fn () => view('admin.users.index'))->name('admin.users.index');
+    Route::prefix('admin')->as('admin.')->middleware('admin')->group(function () {
+        // Admin dashboard -> redirect to users index 
+        Route::get('/', fn () => redirect()->route('admin.users.index'))->name('dashboard');
 
-        Route::get('/users',        [\App\Http\Controllers\Admin\UserController::class, 'index'])->name('admin.users.index');
-        Route::get('/users/create', [\App\Http\Controllers\Admin\UserController::class, 'create'])->name('admin.users.create');
-        Route::post('/users',       [\App\Http\Controllers\Admin\UserController::class, 'store'])->name('admin.users.store');
+        // Users
+        Route::get('/users',        [UserController::class, 'index'])->name('users.index');
+        Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
+        Route::post('/users',       [UserController::class, 'store'])->name('users.store');
 
-        Route::patch('/users/{user}/activate',   [\App\Http\Controllers\Admin\UserController::class, 'activate'])->name('admin.users.activate');
-        Route::patch('/users/{user}/deactivate', [\App\Http\Controllers\Admin\UserController::class, 'deactivate'])->name('admin.users.deactivate');
-        Route::patch('/users/{user}/role',       [\App\Http\Controllers\Admin\UserController::class, 'setRole'])->name('admin.users.role');
-        Route::post('/users/{user}/send-reset',  [\App\Http\Controllers\Admin\UserController::class, 'sendReset'])->name('admin.users.sendReset');
-        Route::delete('/admin/users/{user}', [\App\Http\Controllers\Admin\UserController::class, 'destroy'])->name('admin.users.destroy');
-        
-        Route::get('/admin/closed-projects', [ClosedProjectController::class, 'index'])->name('admin.closed.index');
-        Route::patch('/admin/closed-projects/{project}/reopen', [ClosedProjectController::class, 'reopen'])->name('admin.closed.reopen');
-        Route::delete('/admin/closed-projects/{project}', [ClosedProjectController::class, 'destroy'])->name('admin.closed.destroy');
-        
-        Route::patch('/admin/projects/{project}/complete', [ProjectLifecycleController::class, 'complete'])->name('admin.projects.complete');
-        Route::patch('/admin/projects/{project}/close', [ClosedProjectController::class, 'close'])->name('admin.projects.close');
+        Route::patch('/users/{user}/activate',   [UserController::class, 'activate'])->name('users.activate');
+        Route::patch('/users/{user}/deactivate', [UserController::class, 'deactivate'])->name('users.deactivate');
+        Route::patch('/users/{user}/role',       [UserController::class, 'setRole'])->name('users.role');
+        Route::post('/users/{user}/send-reset',  [UserController::class, 'sendReset'])->name('users.sendReset');
+        Route::delete('/users/{user}',           [UserController::class, 'destroy'])->name('users.destroy');
 
-        // (Admin management routes will be added here
+        // Closed projects (no double /admin in path)
+        Route::get('/closed-projects',                    [ClosedProjectController::class, 'index'])->name('closed.index');
+        Route::patch('/closed-projects/{project}/reopen', [ClosedProjectController::class, 'reopen'])->name('closed.reopen');
+        Route::delete('/closed-projects/{project}',       [ClosedProjectController::class, 'destroy'])->name('closed.destroy');
+
+        // Project lifecycle
+        Route::patch('/projects/{project}/complete', [ProjectLifecycleController::class, 'complete'])->name('projects.complete');
+        Route::patch('/projects/{project}/close',    [ClosedProjectController::class, 'close'])->name('projects.close');
+    
+        //Admin routs add here
+    
     });
 
     // App pages
