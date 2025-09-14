@@ -40,8 +40,6 @@
     padding: 0 16px;           
     }
 
-
-
     /* Table headers */
     .table thead th {
     background-color: #202426;
@@ -359,7 +357,7 @@
     color:#fff; background:#ff5f00; border-radius:999px; padding:3px 8px;
     }
 
-    /* Light grey state when pickup is agreed */
+    /* Light grey state */
     .btn-agreed {
     background: #eef0e5;   
     border-color: #d1d5db; 
@@ -369,6 +367,256 @@
     background: #e6e9de;
     border-color: #cdd5de;
     }
+
+    /* In-progress (I oppdrag) visual freeze */
+    .row-inprogress { background: #363732; }
+    .row-inprogress td { opacity: 0.95; }
+
+
+    /* Bucket header colors (override any defaults) */
+    .table.table-bucket-green  thead th,
+    .table.table-bucket-green  tr:first-child th {
+    background-color: rgba(108,115,61,0.85) !important;
+    color: #fff !important;
+    }
+
+    .table.table-bucket-orange thead th,
+    .table.table-bucket-orange tr:first-child th {
+    background-color: rgba(255,95,0,0.85) !important;
+    color: #fff !important;
+    }
+
+    .table.table-bucket-gray   thead th,
+    .table.table-bucket-gray   tr:first-child th {
+    background-color: rgba(140,140,136,0.85) !important;
+    color: #fff !important;
+    }
+
+    .table.table-bucket-dark   thead th,
+    .table.table-bucket-dark   tr:first-child th {
+    background-color: #202426 !important;
+    color: #fff !important;
+    }
+
+    /* --- Avvik modal: centered, compact, same typography --- */
+    .modal { position: fixed; inset: 0; display: none; z-index: 1000; }
+    .modal.is-open { display: block; }
+    .modal-open { overflow: hidden; } 
+
+    .modal__backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.35); }
+
+    .modal__card {
+    position: absolute; top: 40%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: min(92vw, 640px);              
+    max-height: 85vh; overflow: auto;     
+    background: #fff; border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.2);
+    padding: 16px;
+    }
+
+    .modal__title {
+    margin: 0 0 8px 0;
+    font-size: 1.4rem;                    
+    line-height: 1.3;
+    display: flex; flex-wrap: wrap; gap: .35em;
+    }
+
+    /* highlight the order key nicely and allow wrapping */
+    #avvik-orderkey {
+    font-weight: 600;
+    background: #eef0e5;
+    padding: 2px 6px;
+    border-radius: 6px;
+    }
+
+    .modal__meta {
+    font-size: 1rem;                      
+    color: #202426;
+    display: grid; gap: 4px;
+    margin-bottom: 10px;
+    overflow-wrap: anywhere;              
+    }
+
+    .modal__fields .form-input,
+    .modal__fields .form-textarea {
+    font: inherit;                        
+    }
+
+    .modal__actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; }
+
+    /* === Login page polish === */
+    :root{
+    --bg:#f6f7f9; --text:#0f172a; --muted:#6b7280; --card:#fff; --border:#e5e7eb;
+    --primary: #6c733d; --primary-hover:#4e532c; --ring: #ff5f00;
+    }
+
+    /* full-viewport center */
+    .auth-page{
+    min-height:100vh;
+    display:grid;
+    place-items:start center;
+    padding-top:48px;
+    background:var(--bg);
+    }
+
+    /* the card */
+    .auth-card{
+    width:100%;
+    max-width:600px;
+    background:var(--card);
+    color:var(--text);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:24px 28px;
+    box-shadow:0 10px 30px rgba(0,0,0,.06);
+    }
+
+    /* logo smaller + centered */
+    .login-logo{
+    display:block;
+    height:80px;               /* tweak size here */
+    width:auto;
+    margin:0 auto 12px;
+    }
+
+    /* headings / sub */
+    .auth-title{ margin:8px 0 6px; font-size:1.5rem; font-weight:700; }
+    .auth-sub{ margin:0 0 16px; color:var(--muted); font-size:.95rem; }
+
+    /* form layout */
+    .form-grid{ display:grid; gap:12px; }
+    .form-row label{ display:block; font-size:.9rem; color:var(--muted); margin:0 0 6px; }
+
+    /* inputs (works for both .input and your .form-input) */
+    .input, .form-input{
+    width:100%;
+    border:1px solid var(--border);
+    background:#fff;
+    border-radius:10px;
+    padding:.7rem .85rem;
+    font:inherit; color:var(--text);
+    transition:border-color .15s, box-shadow .15s;
+    }
+    .input:focus, .form-input:focus{
+    outline:none; border-color:var(--primary); box-shadow:0 0 0 1px var(--ring);
+    }
+
+    /* remember right, buttons centered */
+    .form-footer{ display:grid; gap:14px; margin-top:6px; }
+    .form-footer .inline-check{ justify-self:end; display:inline-flex; gap:.5rem; color:var(--muted); font-size:.9rem; }
+
+    /* buttons bigger + centered */
+    .actions-center{ display:flex; justify-content:center; align-items:center; gap:12px; }
+    .btn{ display:inline-flex; align-items:center; justify-content:center; border-radius:10px; padding:.7rem 1rem; font-weight:600; border:1px solid transparent; cursor:pointer; text-decoration:none; line-height:1; }
+    .btn-primary{ background:var(--primary); color:#fff; }
+    .btn-primary:hover{ background:var(--primary-hover); }
+    .btn-lg{ padding:.9rem 1.25rem; font-size:1rem; }
+
+    /* alert */
+    .alert{ border-radius:10px; padding:.75rem .9rem; border:1px solid var(--border); background:#fff8f8; color:#ff5f00; margin-bottom:.9rem; }
+
+    /* link */
+    .auth-link{ font-size:.9rem; color:var(--primary); text-decoration:none; }
+    .auth-link:hover{ text-decoration:underline; }
+
+    .nav-link.as-button{ background:transparent; border:0; padding:0; font:inherit; color:inherit; cursor:pointer; }
+
+    /* ===== Admin topbar (desktop) ===== */
+    .admin-topbar{ position: sticky; top: 0; z-index: 60; background:#fff; border-bottom:1px solid #e5e7eb; }
+    .admin-topbar__inner{
+    max-width: 1200px; margin: 0 auto; padding: 8px 16px;
+    display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px;
+    }
+    .admin-brand{ font-weight: 700; color: #6c733d; text-decoration: none; }
+    .admin-topbar__center{ justify-self: center; }
+    .admin-topbar__right{ justify-self: end; }
+
+    .admin-nav{ display: flex; align-items: center; gap: 8px; }
+    .admin-nav a, .linklike{
+    display: inline-flex; align-items: center; padding: 8px 10px; border-radius: 8px;
+    text-decoration: none; color: inherit; font: inherit; background: transparent; border: 1px solid transparent;
+    }
+    .admin-nav a:hover, .linklike:hover{ background: #eef0e5; border-color: #e5e7eb; }
+    .admin-nav a.active{ background: #6c733d; color: #fff; border-color: #6c733d; }
+
+    .linklike{ background: transparent; border: 0; cursor: pointer; }
+
+    /* Admin content (no sidebar) */
+    .admin-shell{ display: block; min-height: calc(100vh - 60px); }
+    .admin-content{ padding: 20px; }
+
+    /* --- Table container: no inner vertical scroll --- */
+    .table-wrap{
+    /* keep your border/radius; just ensure no vertical viewport inside the table */
+    overflow-x: auto;
+    overflow-y: visible;
+    max-height: none;
+    }
+
+    /* Optional: if you added sticky header earlier and want to disable it: */
+    /* .table-admin thead th { position: static; } */
+
+    /* --- Actions cell: inline, tidy, fixed button widths --- */
+    .actions-cell{ text-align: left; }
+
+    .actions-inline{
+    display: inline-flex;
+    gap: 6px;
+    align-items: left;
+    justify-content: flex-end;
+    flex-wrap: wrap;    /* allows wrapping if very many actions */
+    white-space: nowrap;
+    }
+
+    /* Fixed-width action buttons so labels don't resize them */
+    .btn-fixed{
+    width: 120px;               /* adjust as you like (120–140px works well) */
+    justify-content: left;    /* centers text inside fixed width */
+    }
+
+    /* Compact icon button for delete */
+    .btn-icon{
+    width: 38px; height: 38px;  /* matches your control height */
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 0;
+    }
+    .btn-icon svg{ pointer-events: none; }
+
+    /* Ensure ghost button exists (if not already defined) */
+    .btn-ghost{
+    background: transparent; color: #202426; border: 1px solid #e5e7eb;
+    }
+    .btn-ghost:hover{
+    background: #eef0e5; border-color: #e5e7eb;
+    }
+
+    /*Closed project */
+    .col-actions{ width: 260px; text-align: right; }
+    .actions-cell{ text-align: right; }
+    .actions-inline{ display:inline-flex; gap:6px; align-items:center; justify-content:flex-end; flex-wrap:wrap; white-space:nowrap; }
+    .btn-fixed{ width:120px; justify-content:center; }
+    .btn-icon{ width:38px; height:38px; display:inline-flex; align-items:center; justify-content:center; padding:0; }
+
+    /*goods*/
+    .col-actions{ width: 420px; text-align: right; }
+    .actions-cell{ text-align: right; }
+    .actions-inline{ display:inline-flex; gap:6px; align-items:center; justify-content:flex-end; flex-wrap:wrap; white-space:nowrap; }
+    .btn-fixed{ width:120px; justify-content:center; }
+    .btn-icon{ width:38px; height:38px; display:inline-flex; align-items:center; justify-content:center; padding:0; }
+
+
+    @media (max-width: 640px) {
+    .modal__card { width: 94vw; max-height: 90vh; }
+    
+
+}
+
+
+
+
+
+
 
 
 

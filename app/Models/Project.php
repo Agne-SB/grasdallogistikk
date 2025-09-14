@@ -18,7 +18,9 @@ class Project extends Model
         'goods_note', 'delivery_date', 'supplier_eta',
         'delivered_at', 'staged_location', 'ready_at', 'notified_at',
         'pickup_time_from', 'pickup_time_to', 'appointment_notes',
-        'pickup_collected_at', 'requires_appointment',
+        'pickup_collected_at', 'requires_appointment', 'mount_started_at', 'mount_completed_at',
+        'geo_lat','geo_lng', 'geocoded_at','geocode_provider', 'geocode_attempts','geocode_failed_at',
+        'geocode_last_error','closed_at',
     ];
 
     protected $casts = [
@@ -37,6 +39,16 @@ class Project extends Model
         'pickup_collected_at'  => 'datetime',
 
         'requires_appointment' => 'boolean',
+
+        'mount_started_at'   => 'datetime',
+        'mount_completed_at' => 'datetime',
+
+        'geo_lat'=>'float',
+        'geo_lng'=>'float',
+        'geocoded_at'=>'datetime',
+        'geocode_failed_at' => 'datetime',
+        
+        'closed_at' => 'datetime',
     ];
 
     public function deviations()
@@ -46,6 +58,23 @@ class Project extends Model
     public function openDeviations()
     {
         return $this->hasMany(\App\Models\Deviation::class)->where('status','open');
+    }
+
+    //  “mann” code
+    public function getMannAttribute(): ?int
+    {
+        $title = (string) $this->title;
+        if ($title === '') return null;
+
+        if (preg_match('/^[^\d]*\b(\d{1,3})\b/u', $title, $m)) {
+            return (int) $m[1];
+        }
+        return null;
+    }
+
+    public function setVendorStatusAttribute($value)
+    {
+        $this->attributes['vendor_status'] = strtolower($value);
     }
 
 }

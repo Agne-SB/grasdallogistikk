@@ -9,12 +9,12 @@
 <body>
     @include('partials.navbar')
 
-    <h1>Welcome to Grasdal Logistic</h1>
-    <p>Text and functions will be added later.</p>
+    <h1>Velkommen til Græsdal Glass logistikk</h1>
 
     @php
         use Illuminate\Support\Carbon;
         use App\Models\Project;
+        use App\Models\StockItem;
 
         $tz = config('app.timezone', 'Europe/Oslo');
 
@@ -41,19 +41,67 @@
         $today = Carbon::now($tz)->startOfDay();
         $end   = (clone $today)->addDays(7)->endOfDay();
 
-        /**
-        * Show any order with a delivery_date coming up in the next 7 days,
-        * that hasn't been delivered yet.
-        * (Works across all buckets: prosjekter / henting / montering.)
-        */
-        $incoming = Project::query()
-            ->whereNotNull('delivery_date')
-            ->whereNull('delivered_at')
-            ->whereBetween('delivery_date', [$today->toDateString(), $end->toDateString()])
-            ->orderBy('delivery_date')
-            ->orderBy('external_number')
-            ->get();
+        // Projects: incoming deliveries next 7 days (not delivered)
+            $incomingProjects = Project::query()
+                ->whereNotNull('delivery_date')
+                ->whereNull('delivered_at')
+                ->whereBetween('delivery_date', [$today->toDateString(), $end->toDateString()])
+                ->orderBy('delivery_date')
+                ->orderBy('external_number')
+                ->get();
 
+            // Varer til lager: incoming deliveries next 7 days (not delivered)
+            $incomingStock = StockItem::query()
+                ->whereNotNull('delivery_date')
+                ->whereNull('delivered_at')
+                ->whereBetween('delivery_date', [$today->toDateString(), $end->toDateString()])
+                ->orderBy('delivery_date')
+                ->orderBy('title')
+                ->get();
+
+            // Unify into one list for the table
+            $incomingRows = collect();
+
+            foreach ($incomingProjects as $p) {
+                $d = $p->delivery_date instanceof Carbon
+                    ? $p->delivery_date
+                    : ($p->delivery_date ? Carbon::parse($p->delivery_date, $tz) : null);
+
+                $left = $d ? $today->diffInDays($d, false) : null;
+                $hint = $d?->isToday() ? 'I dag' : ($d?->isTomorrow() ? 'I morgen' : ($left !== null ? $left.' d' : ''));
+
+                $incomingRows->push([
+                    'date'   => $d?->toDateString() ?? '–',
+                    'prnr'   => $p->external_number ?? '–',
+                    'title'  => $p->title,
+                    'ansv'   => $p->supervisor_name ?? '–',
+                    'note'   => $p->goods_note ?: '–',
+                    'hint'   => $hint,
+                    'source' => 'project',
+                ]);
+            }
+
+            foreach ($incomingStock as $it) {
+                $d = $it->delivery_date instanceof Carbon
+                    ? $it->delivery_date
+                    : ($it->delivery_date ? Carbon::parse($it->delivery_date, $tz) : null);
+
+                $left = $d ? $today->diffInDays($d, false) : null;
+                $hint = $d?->isToday() ? 'I dag' : ($d?->isTomorrow() ? 'I morgen' : ($left !== null ? $left.' d' : ''));
+
+                $incomingRows->push([
+                    'date'   => $d?->toDateString() ?? '–',
+                    'prnr'   => '—',                           // Varer has no order key; show dash
+                    'title'  => $it->title,
+                    'ansv'   => $it->supplier ?? '–',          // map Leverandør → Ansvarlig column
+                    'note'   => $it->issue_note ?: '—',        // optional
+                    'hint'   => $hint,
+                    'source' => 'varer',
+                ]);
+            }
+
+            // Sort by date ascending
+            $incomingRows = $incomingRows->sortBy('date')->values();
         @endphp
 
         <h2>Hentes i dag</h2>
@@ -99,38 +147,38 @@
 
         <h2>Forventet levering (neste 7 dager)</h2>
 
-        @if($incoming->isEmpty())
-        <p>Ingen forventede leveringer neste 7 dager.</p>
-        @else
-        <table class="table">
-            <thead>
+    @if($incomingRows->isEmpty())
+    <p>Ingen forventede leveringer neste 7 dager.</p>
+    @else
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Dato</th>
+            <th>Pr.nr.</th>
+            <th>Tittel</th>
+            <th>Ansvarlig</th>
+            <th>Merknad</th>
+            <th>Gjenstår</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach($incomingRows as $row)
             <tr>
-                <th>Dato</th>
-                <th>OrderKey</th>
-                <th>Tittel</th>
-                <th>Ansvarlig</th>
-                <th>Merknad</th>
-                <th>Gjenstår</th>
+            <td>{{ $row['date'] }}</td>
+            <td>{{ $row['prnr'] }}</td>
+            <td>
+                {{ $row['title'] }}
+                @if($row['source'] === 'varer')
+                <span class="muted">• Lager</span>
+                @endif
+            </td>
+            <td>{{ $row['ansv'] }}</td>
+            <td>{{ $row['note'] }}</td>
+            <td class="muted">{{ $row['hint'] }}</td>
             </tr>
-            </thead>
-            <tbody>
-            @foreach($incoming as $p)
-                @php
-                $d = $p->delivery_date?->setTimezone($tz);
-                $left = $d ? $today->diffInDays($d, false) : null; // negative if past (shouldn't happen with the filter)
-                $hint = $d?->isToday() ? 'I dag' : ($d?->isTomorrow() ? 'I morgen' : ($left !== null ? $left.' d' : ''));
-                @endphp
-                <tr>
-                <td>{{ $d?->toDateString() ?? '–' }}</td>
-                <td>{{ $p->external_number ?? '–' }}</td>
-                <td>{{ $p->title }}</td>
-                <td>{{ $p->supervisor_name ?? '–' }}</td>
-                <td>{{ $p->goods_note ?: '–' }}</td>
-                <td class="muted">{{ $hint }}</td>
-                </tr>
-            @endforeach
-            </tbody>
-        </table>
+        @endforeach
+        </tbody>
+    </table>
     @endif
 
 </body>

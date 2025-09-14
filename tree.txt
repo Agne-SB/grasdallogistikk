@@ -1,0 +1,106 @@
+.
+├── .editorconfig
+├── .env
+├── .env.example
+├── .gitattributes
+├── .gitignore
+├── app
+│   ├── Console
+│   │   └── Commands
+│   ├── Http
+│   │   └── Controllers
+│   ├── Models
+│   │   ├── Deviation.php
+│   │   ├── Project.php
+│   │   └── User.php
+│   ├── Providers
+│   │   └── AppServiceProvider.php
+│   └── Services
+│       └── MobileWorkerService.php
+├── artisan
+├── bootstrap
+│   ├── app.php
+│   ├── cache
+│   │   ├── .gitignore
+│   │   ├── packages.php
+│   │   └── services.php
+│   └── providers.php
+├── composer.json
+├── composer.lock
+├── config
+│   ├── app.php
+│   ├── auth.php
+│   ├── cache.php
+│   ├── database.php
+│   ├── filesystems.php
+│   ├── logging.php
+│   ├── mail.php
+│   ├── queue.php
+│   ├── services.php
+│   └── session.php
+├── database
+│   ├── .gitignore
+│   ├── database.sqlite
+│   ├── factories
+│   │   └── UserFactory.php
+│   ├── migrations
+│   │   ├── 0001_01_01_000000_create_users_table.php
+│   │   ├── 0001_01_01_000001_create_cache_table.php
+│   │   ├── 0001_01_01_000002_create_jobs_table.php
+│   │   ├── 2025_08_17_101602_create_projects_table.php
+│   │   ├── 2025_08_23_201706_add_goods_fields_to_projects_table.php
+│   │   ├── 2025_08_23_202221_drop_delivery_time_from_projects_table.php
+│   │   ├── 2025_08_29_000000_add_bucket_to_projects_table.php
+│   │   ├── 2025_08_29_120000_add_vendor_fields_to_projects.php
+│   │   ├── 2025_08_29_183600_add_payload_to_projects.php
+│   │   ├── 2025_08_30_000000_add_henting_fields_to_projects.php
+│   │   ├── 2025_08_30_000100_create_deviations_table.php
+│   │   ├── 2025_08_31_133649_add_geo_to_projects_table.php
+│   │   ├── 2025_08_31_135142_add_geocode_meta_to_projects.php
+│   │   ├── 2025_08_31_201836_add_geocode_fail_columns_to_projects.php
+│   │   ├── 2025_09_01_000000_add_montering_fields_to_projects.php
+│   │   ├── xxxx_xx_xx_add_orderkey_supervisor_vendor_to_projects.php
+│   │   └── xxxx_xx_xx_add_sync_fields_to_projects.php
+│   └── seeders
+│       ├── DatabaseSeeder.php
+│       └── ProjectsSeeder.php
+├── package-lock.json
+├── package.json
+├── phpunit.xml
+├── public
+│   ├── .htaccess
+│   ├── css
+│   │   └── global.css
+│   ├── favicon.ico
+│   ├── images
+│   │   └── logo.png
+│   ├── index.php
+│   └── robots.txt
+├── README.md
+├── resources
+│   ├── css
+│   │   └── app.css
+│   ├── js
+│   │   ├── app.js
+│   │   └── bootstrap.js
+│   └── views
+│       ├── avvik
+│       ├── henting
+│       ├── home.blade.php
+│       ├── montering
+│       ├── partials
+│       ├── planlegging
+│       └── projects
+├── routes
+│   ├── console.php
+│   └── web.php
+├── tests
+│   ├── Feature
+│   │   └── ExampleTest.php
+│   ├── TestCase.php
+│   └── Unit
+│       └── ExampleTest.php
+├── tree.txt
+└── vite.config.js
+
+33 directories, 71 files

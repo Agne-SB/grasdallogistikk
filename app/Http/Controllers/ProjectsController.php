@@ -23,38 +23,50 @@ class ProjectsController extends Controller
     }
 
     // Montering (MP)
-    public function montering(Request $request)
+    public function montering(\Illuminate\Http\Request $request)
     {
-        $projects = $this->queryForBucket('montering', $request)
-            ->paginate(50)
+        $base = $this->queryForBucket('montering', $request)
+            ->whereNull('mount_completed_at')               // hide finished
+            ->whereDoesntHave('deviations', fn($q) => $q->where('status','open')); // hide open avvik
+
+        $waiting = (clone $base)
+            ->whereNull('delivered_at')
+            ->paginate(25, ['*'], 'waiting_page')
             ->withQueryString();
 
-        return view('montering.index', compact('projects'));
+        $preparing = (clone $base)
+            ->whereNotNull('delivered_at')->whereNull('ready_at')
+            ->paginate(25, ['*'], 'preparing_page')
+            ->withQueryString();
+
+        $ready = (clone $base)
+            ->whereNotNull('ready_at')
+            ->paginate(25, ['*'], 'ready_page')
+            ->withQueryString();
+
+        return view('montering.index', compact('waiting','preparing','ready'));
     }
 
+    //Henting(HO)
     public function henting(\Illuminate\Http\Request $request)
     {
-        // Base: bucket=henting, not handed out, and NO open avvik
         $base = $this->queryForBucket('henting', $request)
             ->whereNull('pickup_collected_at')
             ->whereDoesntHave('deviations', function ($q) {
                 $q->where('status', 'open');
             });
 
-        // A) Waiting for delivery
         $waiting = (clone $base)
             ->whereNull('delivered_at')
             ->paginate(25, ['*'], 'waiting_page')
             ->withQueryString();
 
-        // B) Preparing (delivered but not ready)
         $preparing = (clone $base)
             ->whereNotNull('delivered_at')
             ->whereNull('ready_at')
             ->paginate(25, ['*'], 'preparing_page')
             ->withQueryString();
 
-        // C) Ready & scheduling (ready_at set)
         $ready = (clone $base)
             ->whereNotNull('ready_at')
             ->paginate(25, ['*'], 'ready_page')
@@ -62,6 +74,24 @@ class ProjectsController extends Controller
 
         return view('henting.index', compact('waiting','preparing','ready'));
     }
+
+    // Mark montering "in assignment" (freeze row)
+    public function markMountStart(\App\Models\Project $project)
+    {
+        if (is_null($project->ready_at)) {
+            return back()->withErrors(['ready_at' => 'Kan ikke sette i oppdrag før klargjøring.']);
+        }
+        $project->update(['mount_started_at' => now()]);
+        return back()->with('status', 'Satt i oppdrag.');
+    }
+
+    // Mark montering completed (remove from list)
+    public function markMountDone(\App\Models\Project $project)
+    {
+        $project->update(['mount_completed_at' => now()]);
+        return back()->with('status', 'Montering utført.');
+    }
+
 
     // Move a project between pages (Prosjekter/Montering/Henting)
     public function moveBucket(Request $request, Project $project)
@@ -184,8 +214,150 @@ class ProjectsController extends Controller
     // D) Handed out to customer
     public function markCollected(\App\Models\Project $project)
     {
+        if (is_null($project->pickup_time_from)) {
+            return back()->with('status', 'Sett «Avtalt dato» først.');
+        }
         $project->update(['pickup_collected_at' => now()]);
-        return back()->with('status', 'Utlevert ✓');
+        return back()->with('status', 'Utlevert');
     }
+
+    // Planing
+    public function planlegging(\Illuminate\Http\Request $request)
+    {
+        $tz    = config('app.timezone', 'Europe/Oslo');
+        $today = \Illuminate\Support\Carbon::now($tz)->startOfDay();
+        $in7   = (clone $today)->addDays(7)->endOfDay();
+        $in14  = (clone $today)->addDays(14)->endOfDay();
+
+        $originLat = (float) config('services.map.origin_lat', 0);
+        $originLng = (float) config('services.map.origin_lng', 0);
+
+        // Exclude items with OPEN deviations
+        $base = \App\Models\Project::query()
+        ->where('bucket', 'montering')
+        ->whereDoesntHave('deviations', fn($q) => $q->where('status','open'))
+        ->whereNull('mount_started_at')     // exclude "I oppdrag"
+        ->whereNull('mount_completed_at');  // exclude "Utført"
+
+        // Tables
+        $levert = (clone $base)
+            ->whereNotNull('delivered_at')
+            ->orderByDesc('delivered_at')
+            ->get();
+
+        $leveres7 = (clone $base)
+            ->whereNull('delivered_at')
+            ->whereBetween('delivery_date', [$today, $in7])
+            ->orderBy('delivery_date')
+            ->get();
+
+        $after7Start = (clone $today)->addDays(8)->startOfDay();
+        $leveres14 = (clone $base)
+            ->whereNull('delivered_at')
+            ->whereBetween('delivery_date', [$after7Start, $in14])
+            ->orderBy('delivery_date')
+            ->get();
+
+        $after14Start = (clone $today)->addDays(15)->startOfDay();
+        $leveres15plus = (clone $base)
+            ->whereNull('delivered_at')
+            ->where('delivery_date', '>=', $after14Start->toDateString())
+            ->orderBy('delivery_date')
+            ->get();
+
+        // Annotate: distance + recently resolved avvik (last 7 days)
+        $recentSince = \Illuminate\Support\Carbon::now($tz)->subDays(7);
+        foreach ([$levert, $leveres7, $leveres14, $leveres15plus] as $set) {
+            $set->each(function ($p) use ($originLat, $originLng, $recentSince) {
+                $p->distance_km = ($p->geo_lat && $p->geo_lng && $originLat && $originLng)
+                    ? round($this->haversineKm($originLat, $originLng, $p->geo_lat, $p->geo_lng), 1)
+                    : null;
+
+                // has a deviation that was resolved recently
+                $p->had_recent_avvik = $p->deviations()
+                    ->where('status','resolved')
+                    ->whereNotNull('resolved_at')
+                    ->where('resolved_at','>=',$recentSince)
+                    ->exists();
+            });
+        }
+
+        // Map markers: also exclude OPEN deviations
+        $forMap = \App\Models\Project::query()
+            ->where('bucket','montering')
+            ->whereNull('mount_completed_at')
+            ->whereNull('mount_started_at') // exclude “I oppdrag”
+            ->whereDoesntHave('deviations', fn($q) => $q->where('status','open'))
+            ->whereNotNull('geo_lat')->whereNotNull('geo_lng')
+            ->get();
+
+            $allForMap = collect()
+            ->merge($levert)
+            ->merge($leveres7)
+            ->merge($leveres14)
+            ->merge($leveres15plus)
+            ->unique('id')                    
+            ->filter(fn($p) => $p->geo_lat && $p->geo_lng);
+
+        
+            $mapItems = $allForMap->map(function ($p) use ($today, $in7, $in14) {
+            if (!empty($p->had_recent_avvik)) {
+                $color = 'red';
+            } elseif ($p->delivered_at) {
+                $color = 'green';
+            } elseif ($p->delivery_date) {
+                if ($p->delivery_date->between($today, $in7)) {
+                    $color = 'orange';
+                } elseif ($p->delivery_date->gt($in14)) {
+                    $color = 'dark';
+                } else {
+                    $color = 'gray';
+                }
+            } else {
+                $color = 'gray';
+            }
+
+            return [
+                'lat'   => (float) $p->geo_lat,
+                'lng'   => (float) $p->geo_lng,
+                'label' => trim(($p->external_number ?? '–') . ($p->mann ? ' • '.$p->mann : '')),
+                'color' => $color,
+            ];
+        })->values()->all();
+
+        return view('planlegging.index', compact(
+            'levert','leveres7','leveres14','leveres15plus',
+            'mapItems','originLat','originLng'
+        ));
+    }
+
+
+    // --- helpers ---
+    private function haversineKm(float $lat1, float $lon1, float $lat2, float $lon2): float
+    {
+        $R = 6371; // km
+        $dLat = deg2rad($lat2 - $lat1);
+        $dLon = deg2rad($lon2 - $lon1);
+        $a = sin($dLat/2)**2 + cos(deg2rad($lat1))*cos(deg2rad($lat2))*sin($dLon/2)**2;
+             + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * sin($dLon/2) ** 2;
+        return round($R * 2 * atan2(sqrt($a), sqrt(1-$a)), 1);
+    }
+
+    private function mapPoint($p, string $color): ?array
+    {
+        if (!$p->geo_lat || !$p->geo_lng) return null;
+        // open avvik: force strong orange
+        $markerColor = $p->has_open_avvik ? 'orange-strong' : $color;
+        $label = trim(($p->external_number ?? '–')
+            . ($p->mann ? (' • ' . $p->mann) : ''));
+
+        return [
+            'lat'   => $p->geo_lat,
+            'lng'   => $p->geo_lng,
+            'label' => $label,
+            'color' => $markerColor,
+        ];
+    }
+
 
 }
