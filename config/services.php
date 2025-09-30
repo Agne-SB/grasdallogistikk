@@ -42,6 +42,12 @@ return [
         'ttl' => env('MW_TOKEN_CACHE_MINUTES', 55),
     ],
 
+    'mobileworker_webhooks' => [
+    'inbound_key' => env('MOBILE_WORKER_WEBHOOK_INBOUND_KEY'),
+    'url'         => env('MOBILE_WORKER_WEBHOOKS_URL', 'https://webhooks.mworker.com'),
+    'version'     => env('MOBILE_WORKER_WEBHOOKS_VERSION', 'v1'),
+    ],
+
     'map' => [
     'origin_lat' => env('MAP_ORIGIN_LAT', 0),
     'origin_lng' => env('MAP_ORIGIN_LNG', 0),
